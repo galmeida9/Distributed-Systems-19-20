@@ -5,6 +5,8 @@ import pt.tecnico.sauron.silo.grpc.*;
 
 public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
+	private SiloBackend backend = new SiloBackend();
+
 	/* Functionality operations */
 	
 	@Override
