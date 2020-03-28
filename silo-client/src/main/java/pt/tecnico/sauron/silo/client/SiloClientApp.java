@@ -11,6 +11,13 @@ public class SiloClientApp {
 		for (int i = 0; i < args.length; i++) {
 			System.out.printf("arg[%d] = %s%n", i, args[i]);
 		}
+
+		SiloFrontend silo = new SiloFrontend("localhost", "8080");
+
+		// ctrl_ping test
+		System.out.println(silo.ctrl_ping("friend"));
 	}
+
+
 	
 }
