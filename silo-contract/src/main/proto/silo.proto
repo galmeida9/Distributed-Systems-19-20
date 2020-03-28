@@ -22,7 +22,7 @@ enum TypeObject {
 // observation
 message Observation {
     TypeObject type = 1;
-    uint64 id = 2;
+    string id = 2;
     google.protobuf.Timestamp date_time = 3;
 }
 
@@ -64,7 +64,7 @@ message ReportResponse {
 // track
 message TrackRequest {
     TypeObject type = 1;
-    uint64 id = 2;
+    string id = 2;
 }
 
 message TrackResponse {
@@ -84,7 +84,7 @@ message TrackMatchResponse {
 // trace
 message TraceRequest {
     TypeObject type = 1;
-    uint64 id = 2;
+    string id = 2;
 }
 
 message TraceResponse {

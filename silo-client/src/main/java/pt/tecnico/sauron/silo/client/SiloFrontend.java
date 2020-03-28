@@ -28,11 +28,11 @@ public class SiloFrontend {
 
     public class ObservationObject {
         private String _type;
-        private long _id;
+        private String _id;
         private Timestamp _timestamp;
         
         
-        ObservationObject(String type, long id, Timestamp timestamp ){
+        ObservationObject(String type, String id, Timestamp timestamp ){
             _type = type;
             _id = id;
             _timestamp = timestamp;
@@ -127,7 +127,7 @@ public class SiloFrontend {
         return getStatus(response.getStatus());
     }
 
-    public ObservationObject track(String type, long id) throws InvalidTypeException {
+    public ObservationObject track(String type, String id) throws InvalidTypeException {
         TypeObject enumType = getTypeFromStr(type);
         TrackResponse response = _stub.track(TrackRequest.newBuilder().setType(enumType).setId(id).build());
         return new ObservationObject(
@@ -147,7 +147,7 @@ public class SiloFrontend {
         return convertObservations(response.getObservationList());
     }
 
-    public List<ObservationObject> trace(String type, long id) throws InvalidTypeException {
+    public List<ObservationObject> trace(String type, String id) throws InvalidTypeException {
         TraceRequest.Builder request = TraceRequest.newBuilder();
 
         request.setType(getTypeFromStr(type));
