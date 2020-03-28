@@ -11,28 +11,28 @@ import com.google.protobuf.Timestamp;
 
 public class SiloFrontend {
 
-    private ManagedChannel _channel;
-    private SiloGrpc.SiloBlockingStub _stub;
+    private ManagedChannel channel;
+    private SiloGrpc.SiloBlockingStub stub;
 
     public SiloFrontend(String host, String port) {
 		String target = host + ":" + Integer.parseInt(port);
         debug("Target: " + target);
         
-		_channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
-	    _stub = SiloGrpc.newBlockingStub(_channel);
+		channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+	    stub = SiloGrpc.newBlockingStub(channel);
     }
 
     /* 
     *   Contract related classes and methods
     */
 
-    public class ObservationObject {
+    public static class ObservationObject {
         private String _type;
         private String _id;
         private Timestamp _timestamp;
         
         
-        ObservationObject(String type, String id, Timestamp timestamp ){
+        public ObservationObject(String type, String id, Timestamp timestamp ){
             _type = type;
             _id = id;
             _timestamp = timestamp;
@@ -107,12 +107,12 @@ public class SiloFrontend {
     */
     public String camJoin(String camName, double lat, double lon){
         Coordinates coords = Coordinates.newBuilder().setLat(lat).setLong(lon).build();
-        CamJoinResponse response = _stub.camJoin(CamJoinRequest.newBuilder().setCamName(camName).setCoordinates(coords).build());
+        CamJoinResponse response = stub.camJoin(CamJoinRequest.newBuilder().setCamName(camName).setCoordinates(coords).build());
         return getStatus(response.getStatus());
     }
 
     public String camInfo(String camName){
-        CamInfoResponse response = _stub.camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
+        CamInfoResponse response = stub.camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
         return String.valueOf(response.getCoordinates().getLat()) + String.valueOf(response.getCoordinates().getLong());
     }
 
@@ -123,13 +123,13 @@ public class SiloFrontend {
             request.addObservation(Observation.newBuilder().setType(getTypeFromStr(observation._type)).setId(observation._id).setDateTime(observation._timestamp));
         }
         
-        ReportResponse response = _stub.report(request.build());
+        ReportResponse response = stub.report(request.build());
         return getStatus(response.getStatus());
     }
 
     public ObservationObject track(String type, String id) throws InvalidTypeException {
         TypeObject enumType = getTypeFromStr(type);
-        TrackResponse response = _stub.track(TrackRequest.newBuilder().setType(enumType).setId(id).build());
+        TrackResponse response = stub.track(TrackRequest.newBuilder().setType(enumType).setId(id).build());
         return new ObservationObject(
             getStrFromType(response.getObservation().getType()),
             response.getObservation().getId(),
@@ -142,7 +142,7 @@ public class SiloFrontend {
 
         request.setType(getTypeFromStr(type));
         request.setPartialId(id);        
-        TrackMatchResponse response = _stub.trackMatch(request.build());
+        TrackMatchResponse response = stub.trackMatch(request.build());
         
         return convertObservations(response.getObservationList());
     }
@@ -153,7 +153,7 @@ public class SiloFrontend {
         request.setType(getTypeFromStr(type));
         request.setId(id);
         
-        TraceResponse response = _stub.trace(request.build());
+        TraceResponse response = stub.trace(request.build());
 
         return convertObservations(response.getObservationList());
     }
@@ -165,7 +165,7 @@ public class SiloFrontend {
     public String ctrl_ping(String input){
         CtrlPingRequest request = CtrlPingRequest.newBuilder().setInput(input).build();
         
-        CtrlPingResponse response = _stub.ctrlPing(request);
+        CtrlPingResponse response = stub.ctrlPing(request);
         
         return response.getOutput();
     }
