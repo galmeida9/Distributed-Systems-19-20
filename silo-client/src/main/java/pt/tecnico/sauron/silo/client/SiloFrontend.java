@@ -22,6 +22,13 @@ public class SiloFrontend {
 	    stub = SiloGrpc.newBlockingStub(channel);
     }
 
+    /*
+    * Method to shutdown the channel when exiting.
+    */
+    public void exit(){
+        channel.shutdown();
+    }
+
     /* 
     *   Contract related classes and methods
     */
