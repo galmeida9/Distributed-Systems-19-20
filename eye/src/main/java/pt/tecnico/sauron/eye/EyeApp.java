@@ -4,13 +4,10 @@ package pt.tecnico.sauron.eye;
 import com.google.protobuf.Timestamp;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
 
-import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
-
-import java.util.logging.Logger;
 
 import static java.lang.Thread.sleep;
 
@@ -20,6 +17,9 @@ public class EyeApp {
 	static List<SiloFrontend.ObservationObject> observations = new ArrayList<>();
 	static SiloFrontend frontend;
 	static String camName;
+
+	//FIXME: Get real list
+	static List<String> validTypes = Arrays.asList("person", "car");
 
 	public static void main(String[] args) {
 		System.out.println(EyeApp.class.getSimpleName());
@@ -33,15 +33,20 @@ public class EyeApp {
 			System.out.printf("arg[%d] = %s%n", i, args[i]);
 		}
 
-		//FIXME: Add arguments
-		camName = "Tagus";
-		double lat = 38.737613, lon = -9.303164;
+		if (args.length != 5){
+			System.out.println("Too few arguments.\nUsage example: $ eye localhost 8080 Tagus 38.737613 -9.303164.\n");
+			return;
+		}
+
+		camName = args[2];
+		double lat = Double.parseDouble(args[3]);
+		double lon = Double.parseDouble(args[4]);
 
 		// Join server
-		frontend = new SiloFrontend("localhost", "8080");
+		frontend = new SiloFrontend(args[0], args[1]);
 		try {
 			String res = frontend.camJoin(camName, lat, lon);
-			log(true, res);
+			log("%s", res, true);
 			// TODO: fix verification
 			if (res.contains("error")) {
 				frontend.exit();
@@ -55,67 +60,57 @@ public class EyeApp {
 		}
 
 		int pause = 0;
-		try (Scanner scanner = new Scanner(System.in)) {
-			while (scanner.hasNextLine()){
-				String[] line = scanner.nextLine().strip().split(",");
+		Scanner scanner = new Scanner(System.in);
+		while (scanner.hasNextLine()) {
+			String[] line = scanner.nextLine().strip().split(",");
 
-				// Check if it is a comment
-				if (line.length == 0 || line[0].startsWith("#")) {
-					log("COMMENT"); continue;
+			// Check if it is a comment
+			if (line.length == 0 || line[0].startsWith("#")) {
+				log("COMMENT");
+			}
+			else if (line[0].equals("zzz") && line.length == 2 && isNumeric(line[1])) {
+				log("PAUSE: " + line[1] + " ms.");
+				pause += Integer.parseInt(line[1]);
+			}
+			else if (validTypes.contains(line[0]) && line.length == 2) {
+				String id = line[1].strip();
+				String type = line[0].strip();
+				log("OBS - TYPE: " + type + ", ID: " + id);
+
+				observations.add(new SiloFrontend.ObservationObject(type, id));
+			}
+			else if (line[0].equals("") && line.length == 1) {
+				log("EMPTY LINE");
+
+				try {
+					sleep(pause);
+					pause = 0;
+					log(true, report());
 				}
-
-				switch (line[0]) {
-					case "zzz": // Pause on processing
-						if (line.length != 2 || !isNumeric(line[1])) break;
-						log("PAUSE: " + line[1] + " ms.");
-						//TODO: Sleep for x milliseconds DOUBT, in send or in processing?
-
-						pause += Integer.parseInt(line[1]);
-						break;
-					case "car":
-					case "person": // Add observation
-						if (line.length != 2) break;
-						String id = line[1].strip(), type = line[0].strip();
-						log("OBS: TYPE: " + type + ", ID: " + id);
-
-						//TODO: Check if we can use timestamp of google
-						Instant time = Instant.now();
-						observations.add(
-								new SiloFrontend.ObservationObject(type, id,
-										Timestamp.newBuilder().setSeconds(time.getEpochSecond()).setNanos(time.getNano()).build()
-								));
-						break;
-					case "": // Empty line
-						if (line.length != 1) break;
-						log("EMPTY LINE");
-
-						sleep(pause);
-						pause = 0;
-						log(true, report(camName));
-						break;
-					default: // Unknown commands
-						log("UNKNOWN");
-						break;
+				catch (Exception e) {
+					// FIXME: check exception
+					log("%s", e.getMessage(), true);
 				}
 			}
-			// On close send observations
-			if (observations.size() > 0) report(camName);
+			else log("UNKNOWN");
 		}
-		// FIXME: Fix exceptions
-		catch (Exception e) {
-			log(e.getMessage());
-		}
-		finally {
-			frontend.exit();
-		}
+
+		// On close send observations
+		if (!observations.isEmpty()) report();
+		frontend.exit();
 	}
 
 
 	/*Helpers */
-
-	private static String report(String camName) throws SiloFrontend.InvalidTypeException {
-		String res = frontend.report(camName, observations);
-		observations.clear();
+	private static String report() {
+		String res = "";
+		try {
+			res = frontend.report(camName, observations);
+			observations.clear();
+		}
+		catch (SiloFrontend.InvalidTypeException e){
+			log(e.getMessage());
+		}
 		return res;
 	}
 
@@ -125,15 +120,14 @@ public class EyeApp {
 
 	private static void addShutdownHook(){
 		Runtime.getRuntime().addShutdownHook(new Thread(){
+			@Override
 			public void run() {
-				try { if (observations.size()>0) log(true, report(camName)); }
-				catch (SiloFrontend.InvalidTypeException e) { log(true, e.getMessage()); }
+				if (!observations.isEmpty()) log(report());
 			}
 		});
 	}
 
 	// Log functions
-	private static void log(String input, boolean force){ log(force, "%s", input);}
 	private static void log(String input){ log(false, "%s", input);}
 	private static void log(String format, Object... args){ log(false, format, args);	}
 	private static void log(boolean force, String format, Object... args){
