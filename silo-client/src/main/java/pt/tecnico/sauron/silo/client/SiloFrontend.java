@@ -35,40 +35,13 @@ public class SiloFrontend {
     *   Contract related classes and methods
     */
 
-    public static class ObservationObject {
-        private String type;
-        private String id;
-        private LocalDateTime datetime;
-        private String camName;
-        
-        
-        public ObservationObject(String type, String id, LocalDateTime datetime, String camName){
-            this.type = type;
-            this.id = id;
-            this.datetime = datetime;
-            this.camName = camName;
-        }
-    }
-
-    public static class ObservationInfoObject {
-        private ObservationObject obs;
-        private double lat;
-        private double lon;
-
-        public ObservationInfoObject(ObservationObject obs, double lat, double lon) {
-            this.obs = obs;
-            this.lat = lat;
-            this.lon = lon;
-        }
-    }
-
-    enum ResponseStatus {
+    public enum ResponseStatus {
         OK,
         ID_DUPLICATED,
         NOK
     }
 
-    private ResponseStatus getStatus(Status status){
+    public ResponseStatus getStatus(Status status){
         switch (status){
             case OK:
                 return ResponseStatus.OK;
@@ -77,67 +50,6 @@ public class SiloFrontend {
             case NOK:
             default:
                 return ResponseStatus.NOK;
-        }
-    }
-
-    private List<ObservationObject> convertObservations(List<Observation> oldObs){
-        return oldObs.stream()
-                .map(x -> new ObservationObject( 
-                    getStrFromType(x.getType()), 
-                    x.getId(), 
-                    convertToLocalDateTime(x.getDateTime()),
-                    x.getCamName()))
-                .collect(Collectors.toList());
-    }
-
-    private List<ObservationInfoObject> convertObservationInfoList(List<ObservationInfo> oldObs){
-        return oldObs.stream()
-                .map(x -> new ObservationInfoObject( 
-                    convertToObservation(x, x.getObs().getCamName()),
-                    x.getCoords().getLat(),
-                    x.getCoords().getLong()))
-                .collect(Collectors.toList());
-    }
-
-    private ObservationObject convertToObservation(ObservationInfo observation, String camName) {
-        return new ObservationObject(
-            getStrFromType(observation.getObs().getType()),
-            observation.getObs().getId(),
-            convertToLocalDateTime(observation.getObs().getDateTime()),
-            camName
-            );
-    }
-
-    // Exception for Invalid object type
-    public class InvalidTypeException extends Exception {
-        private static final long serialVersionUID = 1L;
-
-        public InvalidTypeException(String message){
-            super(message);
-        }
-    }
-
-    private TypeObject getTypeFromStr(String type) throws InvalidTypeException {
-        switch (type){
-            case "person":
-                return TypeObject.PERSON;
-            case "car":
-                return TypeObject.CAR;
-            default:
-                throw new InvalidTypeException("Type \'" + type + "\' is incorrect.'");
-        }
-    }
-
-    private String getStrFromType(TypeObject type) {
-        switch (type){
-            case PERSON:
-                return "person";
-            case CAR:
-                return "car";
-            // Only happens if this is not updated with proto
-            default:
-                return null;
-                //throw new InvalidTypeException("Type \'" + type.toString() + "\' is incorrect.'");
         }
     }
 
@@ -171,9 +83,9 @@ public class SiloFrontend {
 
         for (ObservationObject observation : observations){
             request.addObservation(Observation.newBuilder()
-                    .setType(getTypeFromStr(observation.type))
-                    .setId(observation.id)
-                    .setDateTime(convertToTimeStamp(observation.datetime)));
+                    .setType(getTypeFromStr(observation.getType()))
+                    .setId(observation.getId())
+                    .setDateTime(convertToTimeStamp(observation.getDatetime())));
         }
         
         ReportResponse response = stub.report(request.build());
@@ -192,11 +104,11 @@ public class SiloFrontend {
             );
     }
     
-    public List<ObservationInfoObject> trackMatch(String type, String id) throws InvalidTypeException {
+    public List<ObservationInfoObject> trackMatch(String type, String partId) throws InvalidTypeException {
         TrackMatchRequest.Builder request = TrackMatchRequest.newBuilder();
 
         request.setType(getTypeFromStr(type));
-        request.setPartialId(id);        
+        request.setPartialId(partId);        
         TrackMatchResponse response = stub.trackMatch(request.build());
         
         return convertObservationInfoList(response.getObservationList());
@@ -235,14 +147,67 @@ public class SiloFrontend {
         return getStatus(response.getStatus());
     }
 
+    /*
+    *   Auxiliary functions
+    */
+
+    // Converts com.google.protobuf.TimeStamp in LocalDateTime
     private LocalDateTime convertToLocalDateTime(Timestamp ts) {
         return LocalDateTime.ofEpochSecond(ts.getSeconds(), ts.getNanos(), ZoneOffset.UTC);
     }
 
+    // Converts LocalDateTime in com.google.protobuf.TimeStamp
     private Timestamp convertToTimeStamp(LocalDateTime dt) {
         return Timestamp.newBuilder().setSeconds(dt.toEpochSecond(ZoneOffset.UTC))
                         .setNanos(dt.getNano())
                         .build();
+    }
+
+    // Converts lists of grpc Observation in list of ObservationObject
+    private List<ObservationObject> convertObservations(List<Observation> oldObs){
+        return oldObs.stream()
+                .map(x -> new ObservationObject( 
+                    getStrFromType(x.getType()), 
+                    x.getId(), 
+                    convertToLocalDateTime(x.getDateTime()),
+                    x.getCamName()))
+                .collect(Collectors.toList());
+    }
+
+    // Converts lists of grpc ObservationInfo in list of ObservationInfoObject
+    private List<ObservationInfoObject> convertObservationInfoList(List<ObservationInfo> oldObs){
+        return oldObs.stream()
+                .map(x -> new ObservationInfoObject( 
+                    convertToObservation(x, x.getObs().getCamName()),
+                    x.getCoords().getLat(),
+                    x.getCoords().getLong()))
+                .collect(Collectors.toList());
+    }
+
+    // Converts grpc ObservationInfo in ObservationObject
+    private ObservationObject convertToObservation(ObservationInfo observation, String camName) {
+        return new ObservationObject(
+            getStrFromType(observation.getObs().getType()),
+            observation.getObs().getId(),
+            convertToLocalDateTime(observation.getObs().getDateTime()),
+            camName
+            );
+    }
+
+    private TypeObject getTypeFromStr(String type) throws InvalidTypeException {
+        switch (type){
+            case "person":
+                return TypeObject.PERSON;
+            case "car":
+                return TypeObject.CAR;
+            default:
+                throw new InvalidTypeException("Type \'" + type + "\' is incorrect.'");
+        }
+    }
+
+    private String getStrFromType(TypeObject type) {
+        if (type == TypeObject.PERSON) return "person";
+        return "car";
     }
 }
 
