@@ -48,7 +48,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			TrackResponse response = TrackResponse.newBuilder().setObservation(obsResponse).build();
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
-		} catch (InvalidCarIdException | InvalidPersonIdException | NoObservationsException e) {
+		} catch (InvalidIdException | NoObservationsException e) {
 			//perguntar sobre excecao generica
 			throw new RuntimeException(e.getMessage());
 		}
@@ -66,7 +66,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
-		} catch (InvalidCarIdException | InvalidPersonIdException | NoObservationsException e) {
+		} catch (InvalidIdException | NoObservationsException e) {
 			//perguntar sobre excecao generica
 			throw new RuntimeException(e.getMessage());
 		}
@@ -83,7 +83,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			}
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
-		} catch (InvalidCarIdException | InvalidPersonIdException | NoObservationsException e) {
+		} catch (InvalidIdException | NoObservationsException e) {
 			//perguntar sobre excecao generica
 			throw new RuntimeException(e.getMessage());
 		}
@@ -126,27 +126,25 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 							.build();
 	}
 
-	private TypeObject convertToType(ObservationEntity.ObservationEntityType type) {
+	private TypeObject convertToType(ObservationEntity.ObservationEntityType type) throws RuntimeException {
 		switch (type) {
 			case PERSON:
 				return TypeObject.PERSON;
 			case CAR:
 				return TypeObject.CAR;
 			default:
-				//TODO EXCEPTION
-				return null;
+				throw new RuntimeException("Unkown type.");
 		}
 	}
 
-	private ObservationEntity.ObservationEntityType convertToObsEntityType(TypeObject type) {
+	private ObservationEntity.ObservationEntityType convertToObsEntityType(TypeObject type) throws RuntimeException {
 		switch (type) {
 			case PERSON:
 				return ObservationEntity.ObservationEntityType.PERSON;
 			case CAR:
 				return ObservationEntity.ObservationEntityType.CAR;
 			default:
-				//TODO EXCEPTION
-				return null;
+				throw new RuntimeException("Unkown type.");
 		}
 	}
 

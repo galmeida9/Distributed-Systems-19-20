@@ -4,6 +4,8 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import pt.tecnico.sauron.silo.grpc.*;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,34 +36,42 @@ public class SiloFrontend {
     */
 
     public static class ObservationObject {
-        private String _type;
-        private String _id;
-        private Timestamp _timestamp;
+        private String type;
+        private String id;
+        private LocalDateTime datetime;
         
         
-        public ObservationObject(String type, String id, Timestamp timestamp ){
-            _type = type;
-            _id = id;
-            _timestamp = timestamp;
+        public ObservationObject(String type, String id, LocalDateTime datetime ){
+            this.type = type;
+            this.id = id;
+            this.datetime = datetime;
         }
     }
 
-    private String getStatus(Status status){
+    enum ResponseStatus {
+        OK,
+        ID_DUPLICATED,
+        NOK
+    }
+
+    private ResponseStatus getStatus(Status status){
         switch (status){
             case OK:
-                return "Operation Succeeded.";
+                return ResponseStatus.OK;
             case ID_DUPLICATED:
-                return "Duplicated ID, could not resolve operation.";
+                return ResponseStatus.ID_DUPLICATED;
             case NOK:
             default:
-                return "An error occurred during the operation.";
+                return ResponseStatus.NOK;
         }
     }
 
     private List<ObservationObject> convertObservations(List<Observation> oldObs){
         return oldObs.stream()
                 .map(x -> new ObservationObject( 
-                    getStrFromType(x.getType()), x.getId(), x.getDateTime()))
+                    getStrFromType(x.getType()), 
+                    x.getId(), 
+                    convertToLocalDateTime(x.getDateTime())))
                 .collect(Collectors.toList());
     }
 
@@ -112,7 +122,7 @@ public class SiloFrontend {
     /*
     *   Public methods - server related
     */
-    public String camJoin(String camName, double lat, double lon){
+    public ResponseStatus camJoin(String camName, double lat, double lon){
         Coordinates coords = Coordinates.newBuilder().setLat(lat).setLong(lon).build();
         CamJoinResponse response = stub.camJoin(CamJoinRequest.newBuilder().setCamName(camName).setCoordinates(coords).build());
         return getStatus(response.getStatus());
@@ -123,11 +133,14 @@ public class SiloFrontend {
         return String.valueOf(response.getCoordinates().getLat()) + String.valueOf(response.getCoordinates().getLong());
     }
 
-    public String report(String camName, List<ObservationObject> observations) throws InvalidTypeException {
+    public ResponseStatus report(String camName, List<ObservationObject> observations) throws InvalidTypeException {
         ReportRequest.Builder request = ReportRequest.newBuilder().setCamName(camName);  
 
         for (ObservationObject observation : observations){
-            request.addObservation(Observation.newBuilder().setType(getTypeFromStr(observation._type)).setId(observation._id).setDateTime(observation._timestamp));
+            request.addObservation(Observation.newBuilder()
+                    .setType(getTypeFromStr(observation.type))
+                    .setId(observation.id)
+                    .setDateTime(convertToTimeStamp(observation.datetime)));
         }
         
         ReportResponse response = stub.report(request.build());
@@ -140,7 +153,7 @@ public class SiloFrontend {
         return new ObservationObject(
             getStrFromType(response.getObservation().getType()),
             response.getObservation().getId(),
-            response.getObservation().getDateTime()
+            convertToLocalDateTime(response.getObservation().getDateTime())
         );
     }
     
@@ -169,7 +182,7 @@ public class SiloFrontend {
     *   Control operations
     */
 
-    public String ctrl_ping(String input){
+    public String ctrlPing(String input){
         CtrlPingRequest request = CtrlPingRequest.newBuilder().setInput(input).build();
         
         CtrlPingResponse response = stub.ctrlPing(request);
@@ -177,15 +190,24 @@ public class SiloFrontend {
         return response.getOutput();
     }
 
-    public String ctrl_clear(){
+    public ResponseStatus ctrlClear(){
         CtrlClearResponse response = CtrlClearResponse.newBuilder().build();
         return getStatus(response.getStatus());
     }
 
-    public String ctrl_init(){
+    public ResponseStatus ctrlInit(){
         CtrlClearResponse response = CtrlClearResponse.newBuilder().build();
         return getStatus(response.getStatus());
     }
 
+    private LocalDateTime convertToLocalDateTime(Timestamp ts) {
+        return LocalDateTime.ofEpochSecond(ts.getSeconds(), ts.getNanos(), ZoneOffset.UTC);
+    }
+
+    private Timestamp convertToTimeStamp(LocalDateTime dt) {
+        return Timestamp.newBuilder().setSeconds(dt.toEpochSecond(ZoneOffset.UTC))
+                        .setNanos(dt.getNano())
+                        .build();
+    }
 }
 

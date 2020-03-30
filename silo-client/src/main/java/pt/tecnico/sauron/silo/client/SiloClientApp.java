@@ -15,7 +15,7 @@ public class SiloClientApp {
 		SiloFrontend silo = new SiloFrontend("localhost", "8080");
 
 		// ctrl_ping test
-		System.out.println(silo.ctrl_ping("friend"));
+		System.out.println(silo.ctrlPing("friend"));
 	}
 
 
