@@ -1,9 +1,17 @@
 package pt.tecnico.sauron.silo;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+
+import com.google.protobuf.Timestamp;
+
 import io.grpc.stub.StreamObserver;
 import pt.tecnico.sauron.silo.grpc.*;
 
 public class SiloServerImpl extends SiloGrpc.SiloImplBase {
+
+	private SiloBackend backend = new SiloBackend();
 
 	/* Functionality operations */
 	
@@ -34,26 +42,48 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
-		// TODO:
-		TrackResponse response = TrackResponse.newBuilder().build();
-		responseObserver.onNext(response);
-		responseObserver.onCompleted();
+		try {
+			ObservationEntity obs = backend.track(convertToObsEntityType(request.getType()), request.getId());
+			ObservationInfo obsResponse = convertToObservationInfo(obs, backend.getCameraCoordenates(obs.getCamName()));
+			TrackResponse response = TrackResponse.newBuilder().setObservation(obsResponse).build();
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
+		} catch (InvalidIdException | NoObservationsException e) {
+			throw new RuntimeException(e.getMessage());
+		}
 	}
 
 	@Override
 	public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver) {
-		// TODO:
-		TrackMatchResponse response = TrackMatchResponse.newBuilder().build();
-		responseObserver.onNext(response);
-		responseObserver.onCompleted();
+		try {
+			List<ObservationEntity> obs = backend.trackMatch(convertToObsEntityType(request.getType()), request.getPartialId());
+			TrackMatchResponse.Builder response = TrackMatchResponse.newBuilder();
+
+			for (ObservationEntity observation: obs) {
+				response.addObservation(convertToObservationInfo(observation, backend.getCameraCoordenates(observation.getCamName())));
+			}
+
+			responseObserver.onNext(response.build());
+			responseObserver.onCompleted();
+		} catch (InvalidIdException | NoObservationsException e) {
+			throw new RuntimeException(e.getMessage());
+		}
 	}
 
 	@Override
 	public void trace(TraceRequest request, StreamObserver<TraceResponse> responseObserver) {
-		// TODO:
-		TraceResponse response = TraceResponse.newBuilder().build();
-		responseObserver.onNext(response);
-		responseObserver.onCompleted();
+		try{
+			List<ObservationEntity> obs = backend.trace(convertToObsEntityType(request.getType()), request.getId());
+			TraceResponse.Builder response = TraceResponse.newBuilder();
+
+			for (ObservationEntity observation : obs) {
+				response.addObservation(convertToObservationInfo(observation, backend.getCameraCoordenates(observation.getCamName())));
+			}
+			responseObserver.onNext(response.build());
+			responseObserver.onCompleted();
+		} catch (InvalidIdException | NoObservationsException e) {
+			throw new RuntimeException(e.getMessage());
+		}
 	}
 
 	/* Control operations */
@@ -85,5 +115,47 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		responseObserver.onCompleted();
 	}
 	
-	
+	private Observation convertToObservation(ObservationEntity observation) {
+		return Observation.newBuilder()
+						.setType(convertToType(observation.getType()))
+						.setId(observation.getId())
+						.setDateTime(convertToTimeStamp(observation.getDateTime()))
+						.setCamName(observation.getCamName())
+						.build();
+	}
+
+	private ObservationInfo convertToObservationInfo(ObservationEntity observation, List<Double> coordenates) {
+		return ObservationInfo.newBuilder()
+						.setObs(convertToObservation(observation))
+						.setCoords(Coordinates.newBuilder().setLat(coordenates.get(0)).setLong(coordenates.get(1)))
+						.build();
+	}
+
+	private TypeObject convertToType(ObservationEntity.ObservationEntityType type) throws RuntimeException {
+		switch (type) {
+			case PERSON:
+				return TypeObject.PERSON;
+			case CAR:
+				return TypeObject.CAR;
+			default:
+				throw new RuntimeException("Unkown type.");
+		}
+	}
+
+	private ObservationEntity.ObservationEntityType convertToObsEntityType(TypeObject type) throws RuntimeException {
+		switch (type) {
+			case PERSON:
+				return ObservationEntity.ObservationEntityType.PERSON;
+			case CAR:
+				return ObservationEntity.ObservationEntityType.CAR;
+			default:
+				throw new RuntimeException("Unkown type.");
+		}
+	}
+
+	private Timestamp convertToTimeStamp(LocalDateTime date) {
+		return Timestamp.newBuilder().setSeconds(date.toEpochSecond(ZoneOffset.UTC))
+									.setNanos(date.getNano())
+									.build();
+	}
 }

@@ -24,6 +24,7 @@ message Observation {
     TypeObject type = 1;
     string id = 2;
     google.protobuf.Timestamp date_time = 3;
+    string camName = 4;
 }
 
 // coordinates
@@ -35,8 +36,7 @@ message Coordinates {
 // observation info
 message ObservationInfo{
   Observation obs = 1;
-  string camName = 2;
-  Coordinates coords = 3;
+  Coordinates coords = 2;
 }
 
 
