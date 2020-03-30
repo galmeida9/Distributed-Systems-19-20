@@ -44,7 +44,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
 		try {
 			ObservationEntity obs = backend.track(convertToObsEntityType(request.getType()), request.getId());
-			Observation obsResponse = convertToObservation(obs);
+			ObservationInfo obsResponse = convertToObservationInfo(obs, backend.getCameraCoordenates(obs.getCamName()));
 			TrackResponse response = TrackResponse.newBuilder().setObservation(obsResponse).build();
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
@@ -61,7 +61,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			TrackMatchResponse.Builder response = TrackMatchResponse.newBuilder();
 
 			for (ObservationEntity observation: obs) {
-				response.addObservation(convertToObservation(observation));
+				response.addObservation(convertToObservationInfo(observation, backend.getCameraCoordenates(observation.getCamName())));
 			}
 
 			responseObserver.onNext(response.build());
@@ -79,7 +79,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			TraceResponse.Builder response = TraceResponse.newBuilder();
 
 			for (ObservationEntity observation : obs) {
-				response.addObservation(convertToObservation(observation));
+				response.addObservation(convertToObservationInfo(observation, backend.getCameraCoordenates(observation.getCamName())));
 			}
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
@@ -123,6 +123,14 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 							.setType(convertToType(observation.getType()))
 							.setId(observation.getId())
 							.setDateTime(convertToTimeStamp(observation.getDateTime()))
+							.setCamName(observation.getCamName())
+							.build();
+	}
+
+	private ObservationInfo convertToObservationInfo(ObservationEntity observation, List<Double> coordenates) {
+		return ObservationInfo.newBuilder()
+							.setObs(convertToObservation(observation))
+							.setCoords(Coordinates.newBuilder().setLat(coordenates.get(0)).setLong(coordenates.get(1)))
 							.build();
 	}
 

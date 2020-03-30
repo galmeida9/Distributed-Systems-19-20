@@ -39,12 +39,26 @@ public class SiloFrontend {
         private String type;
         private String id;
         private LocalDateTime datetime;
+        private String camName;
         
         
-        public ObservationObject(String type, String id, LocalDateTime datetime ){
+        public ObservationObject(String type, String id, LocalDateTime datetime, String camName){
             this.type = type;
             this.id = id;
             this.datetime = datetime;
+            this.camName = camName;
+        }
+    }
+
+    public static class ObservationInfoObject {
+        private ObservationObject obs;
+        private double lat;
+        private double lon;
+
+        public ObservationInfoObject(ObservationObject obs, double lat, double lon) {
+            this.obs = obs;
+            this.lat = lat;
+            this.lon = lon;
         }
     }
 
@@ -71,8 +85,27 @@ public class SiloFrontend {
                 .map(x -> new ObservationObject( 
                     getStrFromType(x.getType()), 
                     x.getId(), 
-                    convertToLocalDateTime(x.getDateTime())))
+                    convertToLocalDateTime(x.getDateTime()),
+                    x.getCamName()))
                 .collect(Collectors.toList());
+    }
+
+    private List<ObservationInfoObject> convertObservationInfoList(List<ObservationInfo> oldObs){
+        return oldObs.stream()
+                .map(x -> new ObservationInfoObject( 
+                    convertToObservation(x, x.getObs().getCamName()),
+                    x.getCoords().getLat(),
+                    x.getCoords().getLong()))
+                .collect(Collectors.toList());
+    }
+
+    private ObservationObject convertToObservation(ObservationInfo observation, String camName) {
+        return new ObservationObject(
+            getStrFromType(observation.getObs().getType()),
+            observation.getObs().getId(),
+            convertToLocalDateTime(observation.getObs().getDateTime()),
+            camName
+            );
     }
 
     // Exception for Invalid object type
@@ -147,27 +180,29 @@ public class SiloFrontend {
         return getStatus(response.getStatus());
     }
 
-    public ObservationObject track(String type, String id) throws InvalidTypeException {
+    public ObservationInfoObject track(String type, String id) throws InvalidTypeException {
         TypeObject enumType = getTypeFromStr(type);
         TrackResponse response = stub.track(TrackRequest.newBuilder().setType(enumType).setId(id).build());
-        return new ObservationObject(
-            getStrFromType(response.getObservation().getType()),
-            response.getObservation().getId(),
-            convertToLocalDateTime(response.getObservation().getDateTime())
-        );
+        ObservationInfo observation = response.getObservation();
+        ObservationObject obs = convertToObservation(observation, observation.getObs().getCamName());
+        return new ObservationInfoObject(
+                obs, 
+                observation.getCoords().getLat(), 
+                observation.getCoords().getLong()
+            );
     }
     
-    public List<ObservationObject> trackMatch(String type, String id) throws InvalidTypeException {
+    public List<ObservationInfoObject> trackMatch(String type, String id) throws InvalidTypeException {
         TrackMatchRequest.Builder request = TrackMatchRequest.newBuilder();
 
         request.setType(getTypeFromStr(type));
         request.setPartialId(id);        
         TrackMatchResponse response = stub.trackMatch(request.build());
         
-        return convertObservations(response.getObservationList());
+        return convertObservationInfoList(response.getObservationList());
     }
 
-    public List<ObservationObject> trace(String type, String id) throws InvalidTypeException {
+    public List<ObservationInfoObject> trace(String type, String id) throws InvalidTypeException {
         TraceRequest.Builder request = TraceRequest.newBuilder();
 
         request.setType(getTypeFromStr(type));
@@ -175,7 +210,7 @@ public class SiloFrontend {
         
         TraceResponse response = stub.trace(request.build());
 
-        return convertObservations(response.getObservationList());
+        return convertObservationInfoList(response.getObservationList());
     }
 
     /* 

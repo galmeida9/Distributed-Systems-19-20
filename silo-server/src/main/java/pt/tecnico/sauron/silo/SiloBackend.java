@@ -1,7 +1,6 @@
 package pt.tecnico.sauron.silo;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,6 +11,7 @@ import pt.tecnico.sauron.silo.ObservationEntity.ObservationEntityType;
 
 class SiloBackend {
     private final Map<ObservationEntityType, Map<String, List<ObservationEntity>>> observations = new HashMap<>();
+    private Map<String, List<Double>> cameras = new HashMap<>();
 
     private Map<String, List<ObservationEntity>> getTypeObservations(ObservationEntityType type) {
         return observations.get(type);
@@ -21,13 +21,14 @@ class SiloBackend {
         return getTypeObservations(type).get(id);
     }
 
-    private void addIds(final ObservationEntityType type, String id) {
-        getTypeObservations(type).put(id, new ArrayList<>());
+    public List<Double> getCameraCoordenates(String id) {
+        return cameras.get(id);
     }
 
-    private void addObservation(ObservationEntityType type, String id, ObservationEntity observation) {
-        observation.setDateTime(LocalDateTime.now());
-        getObservations(type, id).add(observation);
+    public void setCameraCoordenates(String id, double lat,  double lon) {
+        cameras.get(id).clear();
+        cameras.get(id).add(lat);
+        cameras.get(id).add(lon);
     }
 
     // tamanho do ID pelo menos 63bits

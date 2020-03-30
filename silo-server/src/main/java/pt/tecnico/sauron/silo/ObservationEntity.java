@@ -6,16 +6,18 @@ class ObservationEntity {
     private ObservationEntityType type;
     private String id;
     private LocalDateTime dateTime;
+    private String camName;
 
     enum ObservationEntityType {
         PERSON,
         CAR
     }
 
-    public ObservationEntity(ObservationEntityType type, String id, String date) {
+    public ObservationEntity(ObservationEntityType type, String id, String date, String camName) {
         this.type = type;
         this.id = id;
         this.dateTime = LocalDateTime.parse(date);
+        this.camName = camName;
     }
 
     public ObservationEntityType getType() {
@@ -40,5 +42,13 @@ class ObservationEntity {
 
     public void setDateTime(LocalDateTime timeStamp) {
         this.dateTime = timeStamp;
+    }
+
+    public String getCamName() {
+        return this.camName;
+    }
+
+    public void setCamName(String camName) {
+        this.camName = camName;
     }
 }
