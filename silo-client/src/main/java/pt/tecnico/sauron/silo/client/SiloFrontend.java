@@ -17,11 +17,11 @@ public class SiloFrontend {
     private SiloGrpc.SiloBlockingStub stub;
 
     public SiloFrontend(String host, String port) {
-		String target = host + ":" + Integer.parseInt(port);
+        String target = host + ":" + Integer.parseInt(port);
         debug("Target: " + target);
         
-		channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
-	    stub = SiloGrpc.newBlockingStub(channel);
+        channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
+        stub = SiloGrpc.newBlockingStub(channel);
     }
 
     /*

@@ -31,7 +31,6 @@ class SiloBackend {
         cameras.get(id).add(lon);
     }
 
-    // tamanho do ID pelo menos 63bits
     private void checkId(ObservationEntityType type, String id) throws InvalidIdException {
         switch(type) {
             case PERSON:
@@ -61,7 +60,6 @@ class SiloBackend {
         throw new NoObservationsException("No observations found for " + id);
     }
 
-    //verificacao diferente
     public List<ObservationEntity> trackMatch(ObservationEntityType type, String partId) throws InvalidIdException, NoObservationsException {
         List<ObservationEntity> matches = new ArrayList<>();
         String pattern = partId.replace("*", ".*");

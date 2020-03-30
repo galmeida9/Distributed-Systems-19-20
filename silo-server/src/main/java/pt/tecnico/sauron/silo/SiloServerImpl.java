@@ -49,7 +49,6 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
 		} catch (InvalidIdException | NoObservationsException e) {
-			//perguntar sobre excecao generica
 			throw new RuntimeException(e.getMessage());
 		}
 	}
@@ -67,7 +66,6 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
 		} catch (InvalidIdException | NoObservationsException e) {
-			//perguntar sobre excecao generica
 			throw new RuntimeException(e.getMessage());
 		}
 	}
@@ -84,7 +82,6 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
 		} catch (InvalidIdException | NoObservationsException e) {
-			//perguntar sobre excecao generica
 			throw new RuntimeException(e.getMessage());
 		}
 	}
@@ -120,18 +117,18 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	
 	private Observation convertToObservation(ObservationEntity observation) {
 		return Observation.newBuilder()
-							.setType(convertToType(observation.getType()))
-							.setId(observation.getId())
-							.setDateTime(convertToTimeStamp(observation.getDateTime()))
-							.setCamName(observation.getCamName())
-							.build();
+						.setType(convertToType(observation.getType()))
+						.setId(observation.getId())
+						.setDateTime(convertToTimeStamp(observation.getDateTime()))
+						.setCamName(observation.getCamName())
+						.build();
 	}
 
 	private ObservationInfo convertToObservationInfo(ObservationEntity observation, List<Double> coordenates) {
 		return ObservationInfo.newBuilder()
-							.setObs(convertToObservation(observation))
-							.setCoords(Coordinates.newBuilder().setLat(coordenates.get(0)).setLong(coordenates.get(1)))
-							.build();
+						.setObs(convertToObservation(observation))
+						.setCoords(Coordinates.newBuilder().setLat(coordenates.get(0)).setLong(coordenates.get(1)))
+						.build();
 	}
 
 	private TypeObject convertToType(ObservationEntity.ObservationEntityType type) throws RuntimeException {
