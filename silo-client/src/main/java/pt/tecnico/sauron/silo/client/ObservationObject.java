@@ -14,7 +14,7 @@ public class ObservationObject {
         this.camName = camName;
     }
     
-    public ObservationObject(String type, String id, LocalDateTime datetime, String camName){
+    ObservationObject(String type, String id, LocalDateTime datetime, String camName){
         this(type, id, camName);
         this.datetime = datetime;
     }
