@@ -1,8 +1,6 @@
 package pt.tecnico.sauron.silo.client;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.*;
-import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,14 +18,16 @@ public class SiloReportIT extends BaseIT {
 	private static String CAR_ID_INVALID = "202122";
 
 	private static String CAM_NAME_EXISTENT = "Tagus";
-	private static String CAM_NAME_INEXISTENT = "Alameda";
+	private static String CAM_NAME_NON_EXISTENT = "Alameda";
 
-	private static SiloFrontend frontend = new SiloFrontend("localhost", "8080");
-	private static List<ObservationObject> observations = new ArrayList<>();
-	
+	private static SiloFrontend frontend;
+	private static List<ObservationObject> observations;
+
 	// one-time initialization and clean-up
 	@BeforeAll
 	public static void oneTimeSetUp(){
+		frontend = new SiloFrontend(testProps.getProperty("server.host"), testProps.getProperty("server.port"));
+		observations = new ArrayList<>();
 	}
 
 	@AfterAll
@@ -66,11 +66,11 @@ public class SiloReportIT extends BaseIT {
 	@Test
 	public void invalidCamNameTest(){
 		// Given a observation with a invalid cam
-		observations.add(new ObservationObject(PERSON, PERSON_ID_VALID, CAM_NAME_INEXISTENT));
+		observations.add(new ObservationObject(PERSON, PERSON_ID_VALID, CAM_NAME_NON_EXISTENT));
 
 		try {
 			SiloFrontend.ResponseStatus res;
-			res = frontend.report(CAM_NAME_INEXISTENT, observations);
+			res = frontend.report(CAM_NAME_NON_EXISTENT, observations);
 			assertEquals(SiloFrontend.ResponseStatus.OK, res);
 		}
 		catch (InvalidTypeException e){
@@ -81,6 +81,11 @@ public class SiloReportIT extends BaseIT {
 
 	@Test
 	public void emptyCamNameTest(){
+		assertTrue(true);
+	}
+
+	@Test
+	public void nullCamNameTest(){
 		assertTrue(true);
 	}
 
@@ -118,10 +123,5 @@ public class SiloReportIT extends BaseIT {
 	public void invalidIdPersonTest(){
 		assertTrue(true);
 	}
-
-
-
-
-
 
 }
