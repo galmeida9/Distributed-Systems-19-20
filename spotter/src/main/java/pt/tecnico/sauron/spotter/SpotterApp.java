@@ -27,38 +27,54 @@ public class SpotterApp {
             System.out.printf("Usage: java %s host port%n", SpotterApp.class.getName());
             return;
         }
-
-        final String host = args[0];
-        final String port = args[1];
-
-        silo = new SiloFrontend(host, port);
+        silo = new SiloFrontend(args[0], args[1]);
 
         Scanner scanner = new Scanner(System.in);
 
-        while (true) {
-            String[] line = scanner.nextLine().strip().split(" ");
+        while (scanner.hasNextLine()) {
+            String[] line = scanner.nextLine().strip().split(" ", 2);
+            String[] commandArgs;
 
             switch (line[0]) {
                 case "spot":
-                    if (line.length != 3)
+                    commandArgs = line[1].split(" ");
+                    if (commandArgs.length != 2)
                         System.out.println("Wrong number of arguments");
-
-                    spot(line[1], line[2]);
+                    spot(commandArgs[0], commandArgs[1]);
+                    break;
 
                 case "trail":
-                    if (line.length != 3)
+                    String[] arguments = line[1].split(" ");
+                    if (arguments.length != 2)
                         System.out.println("Wrong number of arguments");
-
-                    trail(line[1], line[2]);
+                    trail(arguments[0], arguments[1]);
+                    break;
 
                 case "help":
+                    if (line.length > 1){
+                        //TODO
+                    }
                     help();
+                    break;
+
                 case "ctrl_ping":
+                    if (line.length < 1){
+                        //TODO
+                    }
+                    System.out.printf(silo.ctrlPing(line[1]));
+                    break;
+
+                /*case "crtl_clear":
                     //TODO
-                case "crtl_clear":
-                    //TODO
+                    SiloFrontend.ResponseStatus res = silo.ctrlClear();
+
                 case "ctrl_init":
                     //TODO
+                    SiloFrontend.ResponseStatus res = silo.ctrlInit();*/
+
+
+                case "exit":
+                    scanner.close();
                 default:
 
             }
@@ -66,6 +82,10 @@ public class SpotterApp {
         }
     }
 
+
+    /*
+    *   Auxiliary functions
+    */
 
     public static String convertToString(ObservationObject obs, Map<String, String> cams){
 	    String camName = obs.getCamName();
@@ -88,29 +108,37 @@ public class SpotterApp {
                 + coordinates;
     }
 
-    //TODO: refactor to convert Observations to list in same function
+
+    public static void processObservations(List<ObservationObject> obs){
+	    Map<String, String> cams = new HashMap<>();
+	    List<String> res = new ArrayList<>();
+
+	    for (ObservationObject observation : obs)
+	        res.add(convertToString(observation, cams));
+
+	    for (String observationStr : res)
+	        System.out.printf(observationStr);
+    }
+
+
+    /*
+    *  Command functions
+    */
 
     public static void spot(String type, String id){
-        Map<String, String> cams = new HashMap<>();
-        List<String> res = new ArrayList<>();
-
-        try{
-            if (id.contains("*")){
-                List<ObservationObject> obs= silo.trackMatch(type, id);
-                obs.sort(Comparator.comparing(ObservationObject::getId).reversed());
-
-                for (ObservationObject observation : obs)
-                    res.add(convertToString(observation, cams));
+	    try{
+	        if (id.contains("*")){
+	            List<ObservationObject> obs = silo.trackMatch(type, id);
+	            obs.sort(Comparator.comparing(ObservationObject::getId));
+	            processObservations(obs);
             }
-            else {
-                ObservationObject observation = silo.track(type, id);
-                res.add(convertToString(observation, cams));
+	        else {
+	            List<ObservationObject> obs = new ArrayList<>();
+	            obs.add(silo.track(type, id));
+	            processObservations(obs);
             }
 
-            for (String observationStr : res)
-                System.out.printf(observationStr);
-
-        } catch (InvalidTypeException e) {
+	    } catch (InvalidTypeException e) {
             //TODO
             e.getMessage();
         }
@@ -118,19 +146,10 @@ public class SpotterApp {
 
 
     public static void trail(String type, String id){
-	    Map<String, String> cams = new HashMap<>();
-	    List<String> res = new ArrayList<>();
-
         try{
             List<ObservationObject> obs= silo.trace(type, id);
-            obs.sort(Comparator.comparing(ObservationObject::getDatetime));
-
-            for (ObservationObject observation : obs)
-                res.add(convertToString(observation, cams));
-
-            for (String observationStr : res)
-                System.out.printf(observationStr);
-
+            obs.sort(Comparator.comparing(ObservationObject::getDatetime).reversed());
+            processObservations(obs);
 
         } catch (InvalidTypeException e) {
             //TODO
@@ -140,8 +159,12 @@ public class SpotterApp {
 
 
     public static void help(){
-	    System.out.printf("spot <type> <id> : Comando spot\n" +
-                "trail <type> <id> : Comando trail");
+	    System.out.printf("Spot command - shows latest observation of a person or object-> spot <type> <id>  Comando spot\n" +
+                "Trail command - shows trail of a person or object -> trail <type> <id>\n" +
+                "Ping command - indicates state of server -> ctrl_ping <message>\n" +
+                "Clear command - cleans state of server -> ctrl_clear\n" +
+                "Init command - initializes parameters -> ctrl_init\n" +
+                "Exit command - exits Spotter -> exit"
+        );
     }
-
 }

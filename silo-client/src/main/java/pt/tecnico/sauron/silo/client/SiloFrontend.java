@@ -74,12 +74,13 @@ public class SiloFrontend {
     }
 
     public ResponseStatus report(String camName, List<ObservationObject> observations) throws InvalidTypeException {
-        ReportRequest.Builder request = ReportRequest.newBuilder().setCamName(camName);  
+        ReportRequest.Builder request = ReportRequest.newBuilder().setCamName(camName);
 
         for (ObservationObject observation : observations){
             request.addObservation(Observation.newBuilder()
                     .setType(getTypeFromStr(observation.getType()))
-                    .setId(observation.getId()));
+                    .setId(observation.getId())
+                    .setCamName(camName));
         }
         
         ReportResponse response = stub.report(request.build());
