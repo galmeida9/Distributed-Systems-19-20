@@ -12,7 +12,7 @@ class SiloBackend {
 
     SiloBackend() {
         for (ObservationEntityType type: ObservationEntityType.values()) {
-            observations.put(type, new ConcurrentHashMap<>());
+            observations.put(type, new ConcurrentHashMap<String, List<ObservationEntity>>());
         }
     }
     
