@@ -1,18 +1,14 @@
 package pt.tecnico.sauron.silo;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import pt.tecnico.sauron.silo.ObservationEntity.ObservationEntityType;
 
 class SiloBackend {
     private final Map<ObservationEntityType, Map<String, List<ObservationEntity>>> observations = new HashMap<>();
-    private Map<String, List<Double>> cameras = new ConcurrentHashMap<>();
+    private Map<String, List<Double>> cameras = new ConcurrentHashMap<>(); // This map might suffer problems of concurrence so it should be protected
 
     SiloBackend() {
         for (ObservationEntityType type: ObservationEntityType.values()) {
@@ -20,6 +16,7 @@ class SiloBackend {
         }
     }
     
+    // Private auxiliary methods
     private Map<String, List<ObservationEntity>> getTypeObservations(ObservationEntityType type) {
         return observations.get(type);
     }
@@ -28,14 +25,17 @@ class SiloBackend {
         return getTypeObservations(type).get(id);
     }
 
-    public List<Double> getCameraCoordenates(String id) {
+    public List<Double> camInfo(String id) {
         return cameras.get(id);
     }
 
-    public void setCameraCoordenates(String id, double lat,  double lon) {
-        cameras.get(id).clear();
-        cameras.get(id).add(lat);
-        cameras.get(id).add(lon);
+    public boolean camJoin(String id, double lat,  double lon) {
+        if (cameras.containsKey(id) &&
+                (!cameras.get(id).get(0).equals(lat) || !cameras.get(id).get(1).equals(lon))) {
+            return false;
+        }
+        cameras.put(id, Arrays.asList(lat, lon));
+        return true;
     }
 
     private void checkId(ObservationEntityType type, String id) throws InvalidIdException {
