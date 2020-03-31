@@ -41,16 +41,11 @@ public class SiloFrontend {
         NOK
     }
 
-    public ResponseStatus getStatus(Status status){
-        switch (status){
-            case OK:
-                return ResponseStatus.OK;
-            case ID_DUPLICATED:
-                return ResponseStatus.ID_DUPLICATED;
-            case NOK:
-            default:
-                return ResponseStatus.NOK;
-        }
+    // Get a list of the valid types for the observations
+    public static List<String> getValidTypes(){
+        List<String> res = new ArrayList<>();
+        for (TypeObject t : TypeObject.values()) res.add(t.toString().toLowerCase());
+        return res;
     }
 
     /*
@@ -84,8 +79,7 @@ public class SiloFrontend {
         for (ObservationObject observation : observations){
             request.addObservation(Observation.newBuilder()
                     .setType(getTypeFromStr(observation.getType()))
-                    .setId(observation.getId())
-                    .setDateTime(convertToTimeStamp(observation.getDatetime())));
+                    .setId(observation.getId()));
         }
         
         ReportResponse response = stub.report(request.build());
@@ -208,6 +202,18 @@ public class SiloFrontend {
     private String getStrFromType(TypeObject type) {
         if (type == TypeObject.PERSON) return "person";
         return "car";
+    }
+
+    private ResponseStatus getStatus(Status status){
+        switch (status){
+            case OK:
+                return ResponseStatus.OK;
+            case ID_DUPLICATED:
+                return ResponseStatus.ID_DUPLICATED;
+            case NOK:
+            default:
+                return ResponseStatus.NOK;
+        }
     }
 }
 

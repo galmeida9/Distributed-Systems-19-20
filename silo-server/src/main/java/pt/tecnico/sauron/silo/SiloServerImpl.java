@@ -17,17 +17,25 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	
 	@Override
 	public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver){
-		// TODO: 
-		CamJoinResponse response = CamJoinResponse.newBuilder().build();
 
-		responseObserver.onNext(response);
+		boolean res = backend.camJoin(request.getCamName(), request.getCoordinates().getLat(), request.getCoordinates().getLong());
+
+		CamJoinResponse.Builder response = CamJoinResponse.newBuilder();
+		if (res) response.setStatus(Status.OK);
+		else response.setStatus(Status.NOK);
+
+		responseObserver.onNext(response.build());
 		responseObserver.onCompleted();
 	}
 
 	@Override
 	public void camInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
-		// TODO:
-		CamInfoResponse response = CamInfoResponse.newBuilder().build();
+		List<Double> listCoords = backend.camInfo(request.getCamName());
+		Coordinates coords = Coordinates.newBuilder()
+				.setLat(listCoords.get(0))
+				.setLong(listCoords.get(1))
+				.build();
+		CamInfoResponse response = CamInfoResponse.newBuilder().setCoordinates(coords).build();
 		responseObserver.onNext(response);
 		responseObserver.onCompleted();
 	}
@@ -44,7 +52,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
 		try {
 			ObservationEntity obs = backend.track(convertToObsEntityType(request.getType()), request.getId());
-			ObservationInfo obsResponse = convertToObservationInfo(obs, backend.getCameraCoordenates(obs.getCamName()));
+			ObservationInfo obsResponse = convertToObservationInfo(obs, backend.camInfo(obs.getCamName()));
 			TrackResponse response = TrackResponse.newBuilder().setObservation(obsResponse).build();
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
@@ -60,7 +68,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			TrackMatchResponse.Builder response = TrackMatchResponse.newBuilder();
 
 			for (ObservationEntity observation: obs) {
-				response.addObservation(convertToObservationInfo(observation, backend.getCameraCoordenates(observation.getCamName())));
+				response.addObservation(convertToObservationInfo(observation, backend.camInfo(observation.getCamName())));
 			}
 
 			responseObserver.onNext(response.build());
@@ -77,7 +85,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			TraceResponse.Builder response = TraceResponse.newBuilder();
 
 			for (ObservationEntity observation : obs) {
-				response.addObservation(convertToObservationInfo(observation, backend.getCameraCoordenates(observation.getCamName())));
+				response.addObservation(convertToObservationInfo(observation, backend.camInfo(observation.getCamName())));
 			}
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
@@ -124,10 +132,10 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 						.build();
 	}
 
-	private ObservationInfo convertToObservationInfo(ObservationEntity observation, List<Double> coordenates) {
+	private ObservationInfo convertToObservationInfo(ObservationEntity observation, List<Double> coordinates) {
 		return ObservationInfo.newBuilder()
 						.setObs(convertToObservation(observation))
-						.setCoords(Coordinates.newBuilder().setLat(coordenates.get(0)).setLong(coordenates.get(1)))
+						.setCoords(Coordinates.newBuilder().setLat(coordinates.get(0)).setLong(coordinates.get(1)))
 						.build();
 	}
 
@@ -138,7 +146,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			case CAR:
 				return TypeObject.CAR;
 			default:
-				throw new RuntimeException("Unkown type.");
+				throw new RuntimeException("Unknown type.");
 		}
 	}
 
@@ -149,7 +157,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			case CAR:
 				return ObservationEntity.ObservationEntityType.CAR;
 			default:
-				throw new RuntimeException("Unkown type.");
+				throw new RuntimeException("Unknown type.");
 		}
 	}
 
