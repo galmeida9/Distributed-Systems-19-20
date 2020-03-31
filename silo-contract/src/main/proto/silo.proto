@@ -33,13 +33,6 @@ message Coordinates {
     double long = 2;
 }
 
-// observation info
-message ObservationInfo{
-  Observation obs = 1;
-  Coordinates coords = 2;
-}
-
-
 // cam_join
 message CamJoinRequest {
     string camName = 1;
@@ -76,7 +69,7 @@ message TrackRequest {
 }
 
 message TrackResponse {
-    ObservationInfo observation = 1;
+    Observation observation = 1;
 }
 
 // track match
@@ -86,7 +79,7 @@ message TrackMatchRequest {
 }
 
 message TrackMatchResponse {
-    repeated ObservationInfo observation = 1;
+    repeated Observation observation = 1;
 }
 
 // trace
@@ -96,7 +89,7 @@ message TraceRequest {
 }
 
 message TraceResponse {
-    repeated ObservationInfo observation = 1;
+    repeated Observation observation = 1;
 }
 
 // ctrl_ping

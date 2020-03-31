@@ -52,7 +52,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
 		try {
 			ObservationEntity obs = backend.track(convertToObsEntityType(request.getType()), request.getId());
-			ObservationInfo obsResponse = convertToObservationInfo(obs, backend.camInfo(obs.getCamName()));
+			Observation obsResponse = convertToObservation(obs);
 			TrackResponse response = TrackResponse.newBuilder().setObservation(obsResponse).build();
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
@@ -68,7 +68,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			TrackMatchResponse.Builder response = TrackMatchResponse.newBuilder();
 
 			for (ObservationEntity observation: obs) {
-				response.addObservation(convertToObservationInfo(observation, backend.camInfo(observation.getCamName())));
+				response.addObservation(convertToObservation(observation));
 			}
 
 			responseObserver.onNext(response.build());
@@ -85,7 +85,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			TraceResponse.Builder response = TraceResponse.newBuilder();
 
 			for (ObservationEntity observation : obs) {
-				response.addObservation(convertToObservationInfo(observation, backend.camInfo(observation.getCamName())));
+				response.addObservation(convertToObservation(observation));
 			}
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
@@ -129,13 +129,6 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 						.setId(observation.getId())
 						.setDateTime(convertToTimeStamp(observation.getDateTime()))
 						.setCamName(observation.getCamName())
-						.build();
-	}
-
-	private ObservationInfo convertToObservationInfo(ObservationEntity observation, List<Double> coordinates) {
-		return ObservationInfo.newBuilder()
-						.setObs(convertToObservation(observation))
-						.setCoords(Coordinates.newBuilder().setLat(coordinates.get(0)).setLong(coordinates.get(1)))
 						.build();
 	}
 

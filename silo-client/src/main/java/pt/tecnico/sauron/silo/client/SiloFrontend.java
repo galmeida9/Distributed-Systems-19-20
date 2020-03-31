@@ -86,29 +86,23 @@ public class SiloFrontend {
         return getStatus(response.getStatus());
     }
 
-    public ObservationInfoObject track(String type, String id) throws InvalidTypeException {
+    public ObservationObject track(String type, String id) throws InvalidTypeException {
         TypeObject enumType = getTypeFromStr(type);
         TrackResponse response = stub.track(TrackRequest.newBuilder().setType(enumType).setId(id).build());
-        ObservationInfo observation = response.getObservation();
-        ObservationObject obs = convertToObservation(observation, observation.getObs().getCamName());
-        return new ObservationInfoObject(
-                obs, 
-                observation.getCoords().getLat(), 
-                observation.getCoords().getLong()
-            );
+        return convertObservation(response.getObservation());
     }
     
-    public List<ObservationInfoObject> trackMatch(String type, String partId) throws InvalidTypeException {
+    public List<ObservationObject> trackMatch(String type, String partId) throws InvalidTypeException {
         TrackMatchRequest.Builder request = TrackMatchRequest.newBuilder();
 
         request.setType(getTypeFromStr(type));
         request.setPartialId(partId);        
         TrackMatchResponse response = stub.trackMatch(request.build());
         
-        return convertObservationInfoList(response.getObservationList());
+        return convertObservationList(response.getObservationList());
     }
 
-    public List<ObservationInfoObject> trace(String type, String id) throws InvalidTypeException {
+    public List<ObservationObject> trace(String type, String id) throws InvalidTypeException {
         TraceRequest.Builder request = TraceRequest.newBuilder();
 
         request.setType(getTypeFromStr(type));
@@ -116,7 +110,7 @@ public class SiloFrontend {
         
         TraceResponse response = stub.trace(request.build());
 
-        return convertObservationInfoList(response.getObservationList());
+        return convertObservationList(response.getObservationList());
     }
 
     /* 
@@ -145,59 +139,21 @@ public class SiloFrontend {
     *   Auxiliary functions
     */
 
-    private ResponseStatus getStatus(Status status){
-        switch (status){
-            case OK:
-                return ResponseStatus.OK;
-            case ID_DUPLICATED:
-                return ResponseStatus.ID_DUPLICATED;
-            case NOK:
-            default:
-                return ResponseStatus.NOK;
-        }
-    }
-
     // Converts com.google.protobuf.TimeStamp in LocalDateTime
     private LocalDateTime convertToLocalDateTime(Timestamp ts) {
         return LocalDateTime.ofEpochSecond(ts.getSeconds(), ts.getNanos(), ZoneOffset.UTC);
     }
 
-    // Converts LocalDateTime in com.google.protobuf.TimeStamp
-    private Timestamp convertToTimeStamp(LocalDateTime dt) {
-        return Timestamp.newBuilder().setSeconds(dt.toEpochSecond(ZoneOffset.UTC))
-                        .setNanos(dt.getNano())
-                        .build();
-    }
-
     // Converts lists of grpc Observation in list of ObservationObject
-    private List<ObservationObject> convertObservations(List<Observation> oldObs){
+    private List<ObservationObject> convertObservationList(List<Observation> oldObs){
         return oldObs.stream()
-                .map(x -> new ObservationObject( 
-                    getStrFromType(x.getType()), 
-                    x.getId(), 
-                    convertToLocalDateTime(x.getDateTime()),
-                    x.getCamName()))
+                .map(x -> convertObservation(x))
                 .collect(Collectors.toList());
     }
 
-    // Converts lists of grpc ObservationInfo in list of ObservationInfoObject
-    private List<ObservationInfoObject> convertObservationInfoList(List<ObservationInfo> oldObs){
-        return oldObs.stream()
-                .map(x -> new ObservationInfoObject( 
-                    convertToObservation(x, x.getObs().getCamName()),
-                    x.getCoords().getLat(),
-                    x.getCoords().getLong()))
-                .collect(Collectors.toList());
-    }
-
-    // Converts grpc ObservationInfo in ObservationObject
-    private ObservationObject convertToObservation(ObservationInfo observation, String camName) {
-        return new ObservationObject(
-            getStrFromType(observation.getObs().getType()),
-            observation.getObs().getId(),
-            convertToLocalDateTime(observation.getObs().getDateTime()),
-            camName
-            );
+    private ObservationObject convertObservation(Observation obs) {
+        return new ObservationObject(getStrFromType(obs.getType()), obs.getId(), 
+                                    convertToLocalDateTime(obs.getDateTime()), obs.getCamName());
     }
 
     private TypeObject getTypeFromStr(String type) throws InvalidTypeException {
