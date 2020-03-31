@@ -31,8 +31,13 @@ public class EyeApp {
 			System.out.printf("arg[%d] = %s%n", i, args[i]);
 		}
 
-		if (args.length != 5){
+		// Check if there are enough arguments
+		if (args.length != 5) {
 			System.out.println("Too few arguments.\nUsage example: $ eye localhost 8080 Tagus 38.737613 -9.303164.\n");
+			return;
+		}
+		else if (!isNumeric(args[1]) || !isDouble(args[3]) || !isDouble(args[4])) {
+			System.out.println("Wrong argument types.\nUsage example: $ eye localhost 8080 Tagus 38.737613 -9.303164.\n");
 			return;
 		}
 
@@ -117,6 +122,10 @@ public class EyeApp {
 
 	private static boolean isNumeric(String input){
 		return input.matches("^[1-9][0-9]*$");
+	}
+
+	private static boolean isDouble(String input){
+		return input.matches("^(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?$");
 	}
 
 	private static void addShutdownHook(){
