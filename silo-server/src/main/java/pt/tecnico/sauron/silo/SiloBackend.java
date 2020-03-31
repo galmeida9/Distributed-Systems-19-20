@@ -6,13 +6,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import pt.tecnico.sauron.silo.ObservationEntity.ObservationEntityType;
 
 class SiloBackend {
     private final Map<ObservationEntityType, Map<String, List<ObservationEntity>>> observations = new HashMap<>();
-    private Map<String, List<Double>> cameras = new HashMap<>();
+    private Map<String, List<Double>> cameras = new ConcurrentHashMap<>();
 
+    SiloBackend() {
+        for (ObservationEntityType type: ObservationEntityType.values()) {
+            observations.put(type, new ConcurrentHashMap<>());
+        }
+    }
+    
     private Map<String, List<ObservationEntity>> getTypeObservations(ObservationEntityType type) {
         return observations.get(type);
     }

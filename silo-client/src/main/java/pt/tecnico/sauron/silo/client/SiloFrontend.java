@@ -32,25 +32,13 @@ public class SiloFrontend {
     }
 
     /* 
-    *   Contract related classes and methods
+    *   Contract related classes
     */
 
     public enum ResponseStatus {
         OK,
         ID_DUPLICATED,
         NOK
-    }
-
-    public ResponseStatus getStatus(Status status){
-        switch (status){
-            case OK:
-                return ResponseStatus.OK;
-            case ID_DUPLICATED:
-                return ResponseStatus.ID_DUPLICATED;
-            case NOK:
-            default:
-                return ResponseStatus.NOK;
-        }
     }
 
     /*
@@ -150,6 +138,18 @@ public class SiloFrontend {
     /*
     *   Auxiliary functions
     */
+
+    private ResponseStatus getStatus(Status status){
+        switch (status){
+            case OK:
+                return ResponseStatus.OK;
+            case ID_DUPLICATED:
+                return ResponseStatus.ID_DUPLICATED;
+            case NOK:
+            default:
+                return ResponseStatus.NOK;
+        }
+    }
 
     // Converts com.google.protobuf.TimeStamp in LocalDateTime
     private LocalDateTime convertToLocalDateTime(Timestamp ts) {
