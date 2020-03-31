@@ -68,10 +68,12 @@ public class EyeApp {
 			if (line.length == 0 || line[0].startsWith("#")) {
 				log("COMMENT");
 			}
+			// Check if it is a pause command
 			else if (line[0].equals("zzz") && line.length == 2 && isNumeric(line[1])) {
 				log("PAUSE: " + line[1] + " ms.");
 				pause += Integer.parseInt(line[1]);
 			}
+			// Check if an observation is sent
 			else if (validTypes.contains(line[0]) && line.length == 2) {
 				String id = line[1].strip();
 				String type = line[0].strip();
@@ -79,6 +81,7 @@ public class EyeApp {
 
 				observations.add(new ObservationObject(type, id, camName));
 			}
+			// Check if it is an empty line and report
 			else if (line[0].equals("") && line.length == 1) {
 				log("EMPTY LINE");
 
