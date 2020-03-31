@@ -10,6 +10,12 @@ class SiloBackend {
     private final Map<ObservationEntityType, Map<String, List<ObservationEntity>>> observations = new HashMap<>();
     private Map<String, List<Double>> cameras = new ConcurrentHashMap<>(); // This map might suffer problems of concurrence so it should be protected
 
+    SiloBackend() {
+        for (ObservationEntityType type: ObservationEntityType.values()) {
+            observations.put(type, new ConcurrentHashMap<String, List<ObservationEntity>>());
+        }
+    }
+    
     // Private auxiliary methods
     private Map<String, List<ObservationEntity>> getTypeObservations(ObservationEntityType type) {
         return observations.get(type);
