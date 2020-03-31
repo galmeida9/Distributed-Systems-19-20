@@ -30,7 +30,13 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void camInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
-		List<Double> listCoords = backend.camInfo(request.getCamName());
+		List<Double> listCoords;
+		try {
+			listCoords = backend.camInfo(request.getCamName());
+		}
+		catch (CameraNotFoundException e) {
+			throw new RuntimeException(e.getMessage());
+		}
 		Coordinates coords = Coordinates.newBuilder()
 				.setLat(listCoords.get(0))
 				.setLong(listCoords.get(1))
