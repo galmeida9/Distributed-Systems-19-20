@@ -70,7 +70,7 @@ public class SiloFrontend {
 
     public String camInfo(String camName){
         CamInfoResponse response = stub.camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
-        return String.valueOf(response.getCoordinates().getLat()) + String.valueOf(response.getCoordinates().getLong());
+        return String.valueOf(response.getCoordinates().getLat()) + ',' + String.valueOf(response.getCoordinates().getLong());
     }
 
     public ResponseStatus report(String camName, List<ObservationObject> observations) throws InvalidTypeException {
