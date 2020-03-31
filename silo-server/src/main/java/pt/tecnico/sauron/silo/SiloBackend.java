@@ -35,7 +35,7 @@ class SiloBackend {
             return false;
         }
         if ( lat > 90 || lat < -90
-                || lon > 90 || lon < 90
+                || lon > 90 || lon < -90
                 || Double.isNaN(lat) || Double.isNaN(lon)
                 || Double.isInfinite(lat) || Double.isInfinite(lon))
             return false;
