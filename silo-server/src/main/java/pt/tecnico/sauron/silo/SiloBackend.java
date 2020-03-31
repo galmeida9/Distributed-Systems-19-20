@@ -10,6 +10,12 @@ class SiloBackend {
     private final Map<ObservationEntityType, Map<String, List<ObservationEntity>>> observations = new HashMap<>();
     private Map<String, List<Double>> cameras = new ConcurrentHashMap<>(); // This map might suffer problems of concurrence so it should be protected
 
+    SiloBackend() {
+        for (ObservationEntityType type: ObservationEntityType.values()) {
+            observations.put(type, new ConcurrentHashMap<String, List<ObservationEntity>>());
+        }
+    }
+    
     // Private auxiliary methods
     private Map<String, List<ObservationEntity>> getTypeObservations(ObservationEntityType type) {
         return observations.get(type);
@@ -28,6 +34,11 @@ class SiloBackend {
                 (!cameras.get(id).get(0).equals(lat) || !cameras.get(id).get(1).equals(lon))) {
             return false;
         }
+        if ( lat > 90 || lat < -90
+                || lon > 90 || lon < -90
+                || Double.isNaN(lat) || Double.isNaN(lon)
+                || Double.isInfinite(lat) || Double.isInfinite(lon))
+            return false;
         cameras.put(id, Arrays.asList(lat, lon));
         return true;
     }
