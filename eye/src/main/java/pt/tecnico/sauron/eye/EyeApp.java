@@ -1,11 +1,10 @@
 package pt.tecnico.sauron.eye;
 
-
-import com.google.protobuf.Timestamp;
+import pt.tecnico.sauron.silo.client.InvalidTypeException;
+import pt.tecnico.sauron.silo.client.ObservationObject;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -13,13 +12,12 @@ import static java.lang.Thread.sleep;
 
 public class EyeApp {
 
-	static boolean DEBUG = true;
-	static List<SiloFrontend.ObservationObject> observations = new ArrayList<>();
+	static boolean DEBUG = false;
+	static List<ObservationObject> observations = new ArrayList<>();
 	static SiloFrontend frontend;
 	static String camName;
 
-	//FIXME: Get real list
-	static List<String> validTypes = Arrays.asList("person", "car");
+	static List<String> validTypes = SiloFrontend.getValidTypes();
 
 	public static void main(String[] args) {
 		System.out.println(EyeApp.class.getSimpleName());
@@ -45,10 +43,12 @@ public class EyeApp {
 		// Join server
 		frontend = new SiloFrontend(args[0], args[1]);
 		try {
-			String res = frontend.camJoin(camName, lat, lon);
-			log("%s", res, true);
-			// TODO: fix verification
-			if (res.contains("error")) {
+			SiloFrontend.ResponseStatus res = frontend.camJoin(camName, lat, lon);
+			if (res.equals(SiloFrontend.ResponseStatus.OK)) {
+				log("Login success.");
+			}
+			else {
+				log("Login failure.");
 				frontend.exit();
 				return;
 			}
@@ -77,7 +77,7 @@ public class EyeApp {
 				String type = line[0].strip();
 				log("OBS - TYPE: " + type + ", ID: " + id);
 
-				observations.add(new SiloFrontend.ObservationObject(type, id));
+				observations.add(new ObservationObject(type, id, camName));
 			}
 			else if (line[0].equals("") && line.length == 1) {
 				log("EMPTY LINE");
@@ -85,10 +85,9 @@ public class EyeApp {
 				try {
 					sleep(pause);
 					pause = 0;
-					log(true, report());
+					report();
 				}
-				catch (Exception e) {
-					// FIXME: check exception
+				catch (InterruptedException e) {
 					log("%s", e.getMessage(), true);
 				}
 			}
@@ -102,16 +101,15 @@ public class EyeApp {
 
 
 	/*Helpers */
-	private static String report() {
-		String res = "";
+	private static void report() {
 		try {
-			res = frontend.report(camName, observations);
+			SiloFrontend.ResponseStatus res = frontend.report(camName, observations);
 			observations.clear();
+			log("REPORT: "+res.toString());
 		}
-		catch (SiloFrontend.InvalidTypeException e){
-			log(e.getMessage());
+		catch (InvalidTypeException e){
+			log(e.getMessage(), true);
 		}
-		return res;
 	}
 
 	private static boolean isNumeric(String input){
@@ -122,7 +120,7 @@ public class EyeApp {
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			@Override
 			public void run() {
-				if (!observations.isEmpty()) log(report());
+				if (!observations.isEmpty()) report();
 			}
 		});
 	}
