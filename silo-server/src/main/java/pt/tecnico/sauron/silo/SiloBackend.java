@@ -34,6 +34,11 @@ class SiloBackend {
                 (!cameras.get(id).get(0).equals(lat) || !cameras.get(id).get(1).equals(lon))) {
             return false;
         }
+        if ( lat > 90 || lat < -90
+                || lon > 90 || lon < 90
+                || Double.isNaN(lat) || Double.isNaN(lon)
+                || Double.isInfinite(lat) || Double.isInfinite(lon))
+            return false;
         cameras.put(id, Arrays.asList(lat, lon));
         return true;
     }
