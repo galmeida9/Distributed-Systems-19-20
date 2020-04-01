@@ -54,8 +54,7 @@ message CamInfoResponse {
 
 // report
 message ReportRequest {
-    string camName = 1;
-    repeated Observation observation = 2;
+    repeated Observation observation = 1;
 }
 
 message ReportResponse {
