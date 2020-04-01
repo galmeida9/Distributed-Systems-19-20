@@ -80,7 +80,7 @@ public class SiloFrontend {
             request.addObservation(Observation.newBuilder()
                     .setType(getTypeFromStr(observation.getType()))
                     .setId(observation.getId())
-                    .setCamName(observation.getCamName());
+                    .setCamName(observation.getCamName()));
         }
         
         ReportResponse response = stub.report(request.build());
