@@ -12,7 +12,7 @@ public class SiloReportIT extends BaseIT {
 
 	// static members
 	private static String PERSON = "person";
-	private static String PERSON_ID_VALID = "1108735282";
+	private static String PERSON_ID_VALID = "1";
 	private static String PERSON_ID_INVALID = "1111a";
 	private static String CAR = "car";
 	private static String CAR_ID_VALID = "20SD21";
@@ -56,10 +56,11 @@ public class SiloReportIT extends BaseIT {
 
 		try {
 			SiloFrontend.ResponseStatus res;
-			res = frontend.report(CAM_NAME_EXISTENT, observations);
+			res = frontend.report( observations);
 			assertEquals(SiloFrontend.ResponseStatus.OK, res);
 		}
 		catch (InvalidTypeException e){
+			System.out.println(e.getMessage());
 			fail("Should not have thrown any exception");
 		}
 	}
@@ -71,7 +72,7 @@ public class SiloReportIT extends BaseIT {
 
 		try {
 			SiloFrontend.ResponseStatus res;
-			res = frontend.report(CAM_NAME_NON_EXISTENT, observations);
+			res = frontend.report(observations);
 			assertEquals(SiloFrontend.ResponseStatus.OK, res);
 		}
 		catch (InvalidTypeException e){
@@ -87,7 +88,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw camera not found exception
 		Assertions.assertThrows(CameraNotFoundException.class, () -> {
-				frontend.report("", observations);
+				frontend.report(observations);
 		});
 	}
 
@@ -99,7 +100,7 @@ public class SiloReportIT extends BaseIT {
 		//FIXME: Wrong exception
 		// Should throw camera not found exception
 		Assertions.assertThrows(CameraNotFoundException.class, () -> {
-			frontend.report(null observations);
+			frontend.report(observations);
 		});
 	}
 
@@ -110,7 +111,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw invalid type exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.report(CAM_NAME_EXISTENT, observations);
+			frontend.report(observations);
 		});
 	}
 
@@ -121,7 +122,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw invalid type exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.report(CAM_NAME_EXISTENT, observations);
+			frontend.report(observations);
 		});
 	}
 
@@ -133,7 +134,7 @@ public class SiloReportIT extends BaseIT {
 		//FIXME: Wrong exception
 		// Should throw invalid id exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.report(CAM_NAME_EXISTENT, observations);
+			frontend.report(observations);
 		});
 	}
 
@@ -145,7 +146,7 @@ public class SiloReportIT extends BaseIT {
 		//FIXME: Wrong exception
 		// Should throw invalid id exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.report(CAM_NAME_EXISTENT, observations);
+			frontend.report(observations);
 		});
 	}
 
@@ -157,7 +158,7 @@ public class SiloReportIT extends BaseIT {
 		//FIXME: Wrong exception
 		// Should throw invalid id exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.report(CAM_NAME_EXISTENT, observations);
+			frontend.report(observations);
 		});
 	}
 
@@ -169,7 +170,7 @@ public class SiloReportIT extends BaseIT {
 		//FIXME: Wrong exception
 		// Should throw invalid id exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.report(CAM_NAME_EXISTENT, observations);
+			frontend.report(observations);
 		});
 	}
 
@@ -181,7 +182,7 @@ public class SiloReportIT extends BaseIT {
 		//FIXME: Wrong exception
 		// Should throw invalid id exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.report(CAM_NAME_EXISTENT, observations);
+			frontend.report(observations);
 		});
 	}
 
