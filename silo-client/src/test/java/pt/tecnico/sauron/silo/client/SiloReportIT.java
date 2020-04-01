@@ -1,6 +1,7 @@
 package pt.tecnico.sauron.silo.client;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,47 +82,107 @@ public class SiloReportIT extends BaseIT {
 
 	@Test
 	public void emptyCamNameTest(){
-		assertTrue(true);
+		// Given a observation with a empty cam name
+		observations.add(new ObservationObject(PERSON, PERSON_ID_VALID, ""));
+
+		// Should throw camera not found exception
+		Assertions.assertThrows(CameraNotFoundException.class, () -> {
+				frontend.report("", observations);
+		});
 	}
 
 	@Test
 	public void nullCamNameTest(){
-		assertTrue(true);
+		// Given a observation with a null cam name
+		observations.add(new ObservationObject(PERSON, PERSON_ID_VALID, null));
+
+		//FIXME: Wrong exception
+		// Should throw camera not found exception
+		Assertions.assertThrows(CameraNotFoundException.class, () -> {
+			frontend.report(null observations);
+		});
 	}
 
 	@Test
 	public void invalidTypeTest(){
-		assertTrue(true);
+		// Given a observation with an invalid type
+		observations.add(new ObservationObject("river", PERSON_ID_VALID, CAM_NAME_EXISTENT));
+
+		// Should throw invalid type exception
+		Assertions.assertThrows(InvalidTypeException.class, () -> {
+			frontend.report(CAM_NAME_EXISTENT, observations);
+		});
 	}
 
 	@Test
 	public void emptyTypeTest(){
-		assertTrue(true);
+		// Given a observation with an empty type
+		observations.add(new ObservationObject("", PERSON_ID_VALID, CAM_NAME_EXISTENT));
+
+		// Should throw invalid type exception
+		Assertions.assertThrows(InvalidTypeException.class, () -> {
+			frontend.report(CAM_NAME_EXISTENT, observations);
+		});
 	}
 
 	@Test
 	public void emptyIdTest(){
-		assertTrue(true);
+		// Given a observation with an empty id
+		observations.add(new ObservationObject(PERSON, "", CAM_NAME_EXISTENT));
+
+		//FIXME: Wrong exception
+		// Should throw invalid id exception
+		Assertions.assertThrows(InvalidTypeException.class, () -> {
+			frontend.report(CAM_NAME_EXISTENT, observations);
+		});
 	}
 
 	@Test
 	public void invalidCombinationTypeIdPersonTest(){
-		assertTrue(true);
+		// Given a observation with an invalid combination of type (person) and id
+		observations.add(new ObservationObject(PERSON, CAR_ID_VALID, CAM_NAME_EXISTENT));
+
+		//FIXME: Wrong exception
+		// Should throw invalid id exception
+		Assertions.assertThrows(InvalidTypeException.class, () -> {
+			frontend.report(CAM_NAME_EXISTENT, observations);
+		});
 	}
 
 	@Test
 	public void invalidCombinationTypeIdCarTest(){
-		assertTrue(true);
+		// Given a observation with an invalid combination of type (car) and id
+		observations.add(new ObservationObject(CAR, PERSON_ID_VALID, CAM_NAME_EXISTENT));
+
+		//FIXME: Wrong exception
+		// Should throw invalid id exception
+		Assertions.assertThrows(InvalidTypeException.class, () -> {
+			frontend.report(CAM_NAME_EXISTENT, observations);
+		});
 	}
 
 	@Test
 	public void invalidIdCarTest(){
-		assertTrue(true);
+		// Given a observation with an invalid id for the car type
+		observations.add(new ObservationObject(CAR, CAR_ID_INVALID, CAM_NAME_EXISTENT));
+
+		//FIXME: Wrong exception
+		// Should throw invalid id exception
+		Assertions.assertThrows(InvalidTypeException.class, () -> {
+			frontend.report(CAM_NAME_EXISTENT, observations);
+		});
 	}
 
 	@Test
 	public void invalidIdPersonTest(){
-		assertTrue(true);
+		// Given a observation with an invalid id for the person type
+		observations.add(new ObservationObject(PERSON, PERSON_ID_INVALID, CAM_NAME_EXISTENT));
+
+		//FIXME: Wrong exception
+		// Should throw invalid id exception
+		Assertions.assertThrows(InvalidTypeException.class, () -> {
+			frontend.report(CAM_NAME_EXISTENT, observations);
+		});
 	}
 
 }
