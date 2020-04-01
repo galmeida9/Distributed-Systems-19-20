@@ -1,6 +1,7 @@
 package pt.tecnico.sauron.silo;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -8,6 +9,7 @@ import pt.tecnico.sauron.silo.ObservationEntity.ObservationEntityType;
 
 class SiloBackend {
     private final Map<ObservationEntityType, Map<String, List<ObservationEntity>>> observations = new HashMap<>();
+
     private Map<String, List<Double>> cameras = new ConcurrentHashMap<>(); // This map might suffer problems of concurrence so it should be protected
 
     SiloBackend() {
@@ -24,6 +26,20 @@ class SiloBackend {
     private List<ObservationEntity> getObservations(ObservationEntityType type, String id) {
         return getTypeObservations(type).get(id);
     }
+
+    //TODO: merge addObservation with report
+    private void addObservation(ObservationEntityType type, String id, ObservationEntity observation) {
+
+        List<ObservationEntity> obs = getObservations(type, id);
+        //no observations with that id
+        if (obs == null){
+            obs = new ArrayList<>();
+            observations.get(type).put(id, obs);
+        }
+
+        obs.add(observation);
+    }
+
 
     public List<Double> camInfo(String id) {
         return cameras.get(id);
@@ -43,6 +59,18 @@ class SiloBackend {
         return true;
     }
 
+
+        public void report(String camName, List<ObservationEntity> observations) throws CameraNotFoundException {
+        if (!cameras.containsKey(camName))
+            throw new CameraNotFoundException("Camera with name " + camName + " not found");
+
+        for (ObservationEntity observation : observations){
+            observation.setDateTime(LocalDateTime.now());
+            addObservation(observation.getType(), observation.getId(), observation);
+        }
+    }
+
+
     private void checkId(ObservationEntityType type, String id) throws InvalidIdException {
         switch(type) {
             case PERSON:
@@ -60,6 +88,7 @@ class SiloBackend {
                 return;
         }
     }
+
 
     public ObservationEntity track(ObservationEntityType type, String id) throws InvalidIdException, NoObservationsException {
         checkId(type, id);
