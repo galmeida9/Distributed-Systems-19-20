@@ -1,6 +1,7 @@
 package pt.tecnico.sauron.silo;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -8,6 +9,7 @@ import pt.tecnico.sauron.silo.ObservationEntity.ObservationEntityType;
 
 class SiloBackend {
     private final Map<ObservationEntityType, Map<String, List<ObservationEntity>>> observations = new HashMap<>();
+
     private Map<String, List<Double>> cameras = new ConcurrentHashMap<>(); // This map might suffer problems of concurrence so it should be protected
 
     SiloBackend() {
@@ -46,6 +48,25 @@ class SiloBackend {
         return true;
     }
 
+
+        public void report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException {
+        if (!cameras.containsKey(camName))
+            throw new CameraNotFoundException("Camera with name " + camName + " not found");
+
+        for (ObservationEntity observation : obs){
+            observation.setDateTime(LocalDateTime.now());
+
+            List<ObservationEntity> oldObs = getObservations(observation.getType(),observation.getId());
+            //no observations with that id
+            if (oldObs == null){
+                oldObs = new ArrayList<>();
+                observations.get(observation.getType()).put(observation.getId(), oldObs);
+            }
+            oldObs.add(observation);
+        }
+    }
+
+
     private void checkId(ObservationEntityType type, String id) throws InvalidIdException {
         switch(type) {
             case PERSON:
@@ -63,6 +84,7 @@ class SiloBackend {
                 return;
         }
     }
+
 
     public ObservationEntity track(ObservationEntityType type, String id) throws InvalidIdException, NoObservationsException {
         checkId(type, id);

@@ -2,6 +2,7 @@ package pt.tecnico.sauron.silo;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.protobuf.Timestamp;
@@ -48,10 +49,21 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver) {
-		// TODO:
-		ReportResponse response = ReportResponse.newBuilder().build();
-		responseObserver.onNext(response);
-		responseObserver.onCompleted();
+		try{
+			List<ObservationEntity> obsEntity = new ArrayList<>();
+			List<Observation> obs = request.getObservationList();
+
+			for (Observation observation : obs){
+				obsEntity.add(convertToObsEntity(observation));
+			}
+
+			backend.report(request.getObservation(0).getCamName(), obsEntity);
+			ReportResponse response = ReportResponse.newBuilder().build();
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
+		} catch (CameraNotFoundException e){
+			throw new RuntimeException(e.getMessage());
+		}
 	}
 
 	@Override
@@ -138,6 +150,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 						.build();
 	}
 
+
 	private TypeObject convertToType(ObservationEntity.ObservationEntityType type) throws RuntimeException {
 		switch (type) {
 			case PERSON:
@@ -158,6 +171,12 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			default:
 				throw new RuntimeException("Unknown type.");
 		}
+	}
+
+		private ObservationEntity convertToObsEntity(Observation obs){
+		return new ObservationEntity(convertToObsEntityType(obs.getType()),
+				obs.getId(),
+				obs.getCamName());
 	}
 
 	private Timestamp convertToTimeStamp(LocalDateTime date) {

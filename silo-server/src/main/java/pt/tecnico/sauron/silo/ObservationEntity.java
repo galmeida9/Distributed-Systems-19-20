@@ -13,10 +13,9 @@ class ObservationEntity {
         CAR
     }
 
-    public ObservationEntity(ObservationEntityType type, String id, String date, String camName) {
+    public ObservationEntity(ObservationEntityType type, String id, String camName) {
         this.type = type;
         this.id = id;
-        this.dateTime = LocalDateTime.parse(date);
         this.camName = camName;
     }
 
