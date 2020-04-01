@@ -111,7 +111,7 @@ public class EyeApp {
 	/*Helpers */
 	private static void report() {
 		try {
-			SiloFrontend.ResponseStatus res = frontend.report(camName, observations);
+			SiloFrontend.ResponseStatus res = frontend.report(observations);
 			observations.clear();
 			log("REPORT: "+res.toString());
 		}

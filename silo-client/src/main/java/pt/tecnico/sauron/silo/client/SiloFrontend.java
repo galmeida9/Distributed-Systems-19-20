@@ -68,9 +68,15 @@ public class SiloFrontend {
         return getStatus(response.getStatus());
     }
 
-    public String camInfo(String camName){
-        CamInfoResponse response = stub.camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
-        return String.valueOf(response.getCoordinates().getLat()) + ',' + String.valueOf(response.getCoordinates().getLong());
+    public String camInfo(String camName) throws CameraNotFoundException {
+        try {
+            CamInfoResponse response = stub.camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
+            return String.valueOf(response.getCoordinates().getLat()) + String.valueOf(response.getCoordinates().getLong());
+        }
+        catch (RuntimeException e) {
+            throw new CameraNotFoundException(e.getMessage());
+        }
+
     }
 
     public ResponseStatus report(List<ObservationObject> observations) throws InvalidTypeException {
@@ -80,7 +86,7 @@ public class SiloFrontend {
             request.addObservation(Observation.newBuilder()
                     .setType(getTypeFromStr(observation.getType()))
                     .setId(observation.getId())
-                    .setCamName(observation.getCamName());
+                    .setCamName(observation.getCamName()));
         }
         
         ReportResponse response = stub.report(request.build());

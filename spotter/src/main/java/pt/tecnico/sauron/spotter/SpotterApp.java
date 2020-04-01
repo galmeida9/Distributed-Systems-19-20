@@ -1,6 +1,7 @@
 package pt.tecnico.sauron.spotter;
 
 
+import pt.tecnico.sauron.silo.client.CameraNotFoundException;
 import pt.tecnico.sauron.silo.client.InvalidTypeException;
 import pt.tecnico.sauron.silo.client.ObservationObject;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
@@ -101,8 +102,14 @@ public class SpotterApp {
 	        coordinates = cams.get(camName);
         }
 	    else{
-	        coordinates = silo.camInfo(camName);
-	         cams.put(camName, coordinates);
+            try {
+                coordinates = silo.camInfo(camName);
+                cams.put(camName, coordinates);
+            } catch (CameraNotFoundException e) {
+                // FIXME: wrong treatment
+                e.printStackTrace();
+                return "";
+            }
         }
 
 	    //Convert observation info into string
