@@ -27,19 +27,6 @@ class SiloBackend {
         return getTypeObservations(type).get(id);
     }
 
-    //TODO: merge addObservation with report
-    private void addObservation(ObservationEntityType type, String id, ObservationEntity observation) {
-
-        List<ObservationEntity> obs = getObservations(type, id);
-        //no observations with that id
-        if (obs == null){
-            obs = new ArrayList<>();
-            observations.get(type).put(id, obs);
-        }
-
-        obs.add(observation);
-    }
-
 
     public List<Double> camInfo(String id) {
         return cameras.get(id);
@@ -60,13 +47,20 @@ class SiloBackend {
     }
 
 
-        public void report(String camName, List<ObservationEntity> observations) throws CameraNotFoundException {
+        public void report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException {
         if (!cameras.containsKey(camName))
             throw new CameraNotFoundException("Camera with name " + camName + " not found");
 
-        for (ObservationEntity observation : observations){
+        for (ObservationEntity observation : obs){
             observation.setDateTime(LocalDateTime.now());
-            addObservation(observation.getType(), observation.getId(), observation);
+
+            List<ObservationEntity> oldObs = getObservations(observation.getType(),observation.getId());
+            //no observations with that id
+            if (oldObs == null){
+                oldObs = new ArrayList<>();
+                observations.get(observation.getType()).put(observation.getId(), oldObs);
+            }
+            oldObs.add(observation);
         }
     }
 
