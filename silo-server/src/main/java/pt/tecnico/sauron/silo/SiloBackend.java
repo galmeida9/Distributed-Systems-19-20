@@ -27,21 +27,23 @@ class SiloBackend {
         return getTypeObservations(type).get(id);
     }
 
-
-    public List<Double> camInfo(String id) {
+    public List<Double> camInfo(String id) throws CameraNotFoundException {
+        if (id == null || id.isEmpty() || id.isBlank() || !cameras.containsKey(id))
+            throw new CameraNotFoundException("Camera '" + id + "' does not exist.");
         return cameras.get(id);
     }
 
     public boolean camJoin(String id, double lat,  double lon) {
-        if (cameras.containsKey(id) &&
-                (!cameras.get(id).get(0).equals(lat) || !cameras.get(id).get(1).equals(lon))) {
-            return false;
-        }
-        if ( lat > 90 || lat < -90
+        if ( id == null || id.isEmpty() || id.isBlank()
+                || lat > 90 || lat < -90
                 || lon > 90 || lon < -90
                 || Double.isNaN(lat) || Double.isNaN(lon)
                 || Double.isInfinite(lat) || Double.isInfinite(lon))
             return false;
+        if (cameras.containsKey(id) &&
+                (!cameras.get(id).get(0).equals(lat) || !cameras.get(id).get(1).equals(lon))) {
+            return false;
+        }
         cameras.put(id, Arrays.asList(lat, lon));
         return true;
     }
