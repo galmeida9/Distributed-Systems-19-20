@@ -38,15 +38,19 @@ public class SpotterApp {
             switch (line[0]) {
                 case "spot":
                     commandArgs = line[1].split(" ");
-                    if (commandArgs.length != 2)
+                    if (commandArgs.length != 2){
                         System.out.println("Wrong number of arguments");
+                        continue;
+                    }
                     spot(commandArgs[0], commandArgs[1]);
                     break;
 
                 case "trail":
                     String[] arguments = line[1].split(" ");
-                    if (arguments.length != 2)
+                    if (arguments.length != 2){
                         System.out.println("Wrong number of arguments");
+                        continue;
+                    }
                     trail(arguments[0], arguments[1]);
                     break;
 
@@ -80,6 +84,7 @@ public class SpotterApp {
             }
 
         }
+        silo.exit();
     }
 
 
@@ -139,8 +144,7 @@ public class SpotterApp {
             }
 
 	    } catch (InvalidTypeException e) {
-            //TODO
-            e.getMessage();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -152,8 +156,7 @@ public class SpotterApp {
             processObservations(obs);
 
         } catch (InvalidTypeException e) {
-            //TODO
-            e.getMessage();
+            System.out.println(e.getMessage());
         }
     }
 
