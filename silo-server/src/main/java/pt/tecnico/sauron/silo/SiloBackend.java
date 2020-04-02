@@ -49,7 +49,7 @@ class SiloBackend {
     }
 
 
-        public void report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException {
+    public void report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException {
         if (!cameras.containsKey(camName))
             throw new CameraNotFoundException("Camera with name " + camName + " not found");
 
@@ -115,6 +115,12 @@ class SiloBackend {
         if (obs.isEmpty()) throw new NoObservationsException("No observations found for " + id);
         Collections.reverse(obs);
         return obs;
+    }
+
+    public boolean ctrlClear() {
+        observations.clear();
+        cameras.clear();
+        return observations.isEmpty() && cameras.isEmpty();
     }
     
 }
