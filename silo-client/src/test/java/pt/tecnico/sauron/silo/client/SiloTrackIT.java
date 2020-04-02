@@ -51,7 +51,7 @@ public class SiloTrackIT extends BaseIT{
     public void sucessTest() {
 	    try {
 	        ObservationObject obs = frontend.track(PERSON, PERSON_ID_VALID);
-        } catch (InvalidTypeException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException e) {
             fail("Should not have thrown any exception.");
         }
     }

@@ -45,6 +45,7 @@ public class SiloReportIT extends BaseIT {
 	@AfterEach
 	public void tearDown() {
 		frontend.ctrlClear();
+		observations.clear();
 	}
 
 	// tests
@@ -59,7 +60,7 @@ public class SiloReportIT extends BaseIT {
 			res = frontend.report( observations);
 			assertEquals(SiloFrontend.ResponseStatus.OK, res);
 		}
-		catch (InvalidTypeException e){
+		catch (InvalidTypeException | ReportException e){
 			System.out.println(e.getMessage());
 			fail("Should not have thrown any exception");
 		}
@@ -75,7 +76,7 @@ public class SiloReportIT extends BaseIT {
 			res = frontend.report(observations);
 			assertEquals(SiloFrontend.ResponseStatus.OK, res);
 		}
-		catch (InvalidTypeException e){
+		catch (InvalidTypeException | ReportException e){
 			fail("Should not have thrown any exception");
 		}
 

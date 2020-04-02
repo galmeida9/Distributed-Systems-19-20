@@ -2,6 +2,7 @@ package pt.tecnico.sauron.eye;
 
 import pt.tecnico.sauron.silo.client.InvalidTypeException;
 import pt.tecnico.sauron.silo.client.ObservationObject;
+import pt.tecnico.sauron.silo.client.ReportException;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
 
 import java.util.ArrayList;
@@ -118,7 +119,7 @@ public class EyeApp {
 			log("REPORT: "+res.toString());
 			System.out.println("Report was " + res.toString());
 		}
-		catch (InvalidTypeException e){
+		catch (InvalidTypeException | ReportException e){
 			log(e.getMessage(), true);
 		}
 	}
