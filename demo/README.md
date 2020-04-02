@@ -1,9 +1,17 @@
 
 ## Demo
 
+Primeiro é necessário instalar o contrato, para isso realizamos o comando `mvn clean install` na root do projeto.
+
+### Server
+Para correr o servidor realiza-se o comando `mvn clean compile exec:java` no diretório do servidor `silo-server/`.
+
+#### Utilização
+Para sair do servidor envia-se um `SIGINT`, ou seja, `CTRL+C`. Os dados guardados no servidor não são permanentes, ou seja, quando este é desligado todos os dados são apagados. Eventuais problemas (falhas), como o lançamento de exceções não tratadas, o servidor mostra-as verbosamente, incluindo um *stack trace*.
+
 ### Eye
 
-Para correr, é necessário antes fazer `mvn clean install` na pasta root do projeto e iniciar o silo-server.
+Para correr, é necessário primeiro iniciar o silo-server.
 De seguida, na pasta `eye` corre-se o comando `target/appassembler/bin/eye localhost 8080 Alameda 1 1 `.
 
 #### Utilização
@@ -18,6 +26,3 @@ No ficheiro `eye_2.txt`, envia-se observações do tipo `person` e envia-se para
 No ficheiro `eye_3.txt`, envia-se observações do tipo `car` e envia-se para o servidor com sucesso.
 
 No ficheiro `eye_4.txt`, demonstra-se a utilização de comentários e do comando `zzz` com 1000 milisegundos (1 segundo), enviando depois uma observação.
-
-
-  
