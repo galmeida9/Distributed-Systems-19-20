@@ -83,6 +83,7 @@ public class EyeApp {
 				String id = line[1].strip();
 				String type = line[0].strip();
 				log("OBS - TYPE: " + type + ", ID: " + id);
+				System.out.println("Added a " + type + " and id " + id);
 
 				observations.add(new ObservationObject(type, id, camName));
 			}
@@ -110,10 +111,12 @@ public class EyeApp {
 
 	/*Helpers */
 	private static void report() {
+		if (observations.isEmpty()) return;
 		try {
 			SiloFrontend.ResponseStatus res = frontend.report(observations);
 			observations.clear();
 			log("REPORT: "+res.toString());
+			System.out.println("Report was " + res.toString());
 		}
 		catch (InvalidTypeException e){
 			log(e.getMessage(), true);
