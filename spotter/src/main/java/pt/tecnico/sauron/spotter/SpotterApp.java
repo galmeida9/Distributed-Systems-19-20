@@ -1,8 +1,8 @@
 package pt.tecnico.sauron.spotter;
 
-
 import pt.tecnico.sauron.silo.client.CameraNotFoundException;
 import pt.tecnico.sauron.silo.client.InvalidTypeException;
+import pt.tecnico.sauron.silo.client.NoObservationsFoundException;
 import pt.tecnico.sauron.silo.client.ObservationObject;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
 
@@ -150,7 +150,7 @@ public class SpotterApp {
 	            processObservations(obs);
             }
 
-	    } catch (InvalidTypeException e) {
+	    } catch (InvalidTypeException | NoObservationsFoundException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -162,7 +162,7 @@ public class SpotterApp {
             obs.sort(Comparator.comparing(ObservationObject::getDatetime).reversed());
             processObservations(obs);
 
-        } catch (InvalidTypeException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException e) {
             System.out.println(e.getMessage());
         }
     }
