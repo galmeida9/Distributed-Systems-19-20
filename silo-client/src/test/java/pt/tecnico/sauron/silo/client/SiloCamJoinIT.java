@@ -73,8 +73,7 @@ public class SiloCamJoinIT extends BaseIT {
 
     @Test
     public void nullCameraNameTest() {
-        assertEquals(ResponseStatus.NOK, frontEnd.camJoin(null, DEFAULT_LAT, DEFAULT_LONG), 
-                    "Creating camera with a null name should return NOK");
+        Assertions.assertThrows(NullPointerException.class, () -> frontEnd.camJoin(null, DEFAULT_LAT, DEFAULT_LONG));
     }
 
     @Test
