@@ -70,8 +70,11 @@ class SiloBackend {
     private void checkId(ObservationEntityType type, String id) throws InvalidIdException {
         switch(type) {
             case PERSON:
-                int size = id.getBytes(StandardCharsets.UTF_16BE).length * 8;
-                if (size < 63) throw new InvalidIdException(id + " for type " + type.toString() + " id too small.");
+                try {
+                    Long.parseLong(id);
+                } catch (NumberFormatException e) {
+                    throw new InvalidIdException(id + " for type " + type.toString() + " id too small.");
+                }
                 return;
             case CAR:
                 String licensePlatePattern = "([A-Z][A-Z]|[0-9][0-9])([A-Z][A-Z]|[0-9][0-9])([A-Z][A-Z]|[0-9][0-9])";
