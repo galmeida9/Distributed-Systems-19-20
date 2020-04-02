@@ -7,7 +7,7 @@ Primeiro é necessário instalar o contrato, para isso realizamos o comando `mvn
 Para correr o servidor realiza-se o comando `mvn clean compile exec:java` no diretório do servidor `silo-server/`.
 
 #### Utilização
-Para sair do servidor envia-se um `SIGINT`, ou seja, `CTRL+C`. Os dados guardados no servidor não são permanentes, ou seja, quando este é desligado todos os dados são apagados. Eventuais problemas (falhas), como o lançamento de exceções não tratadas, o servidor mostra-as verbosamente, incluindo um *stack trace*.
+Para sair do servidor envia-se um `SIGINT`, ou seja, `CTRL+C`. Os dados guardados no servidor não são permanentes, ou seja, quando este é desligado todos os dados são apagados.
 
 ### Eye
 
