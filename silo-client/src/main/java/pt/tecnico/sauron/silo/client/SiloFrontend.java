@@ -93,31 +93,43 @@ public class SiloFrontend {
         return getStatus(response.getStatus());
     }
 
-    public ObservationObject track(String type, String id) throws InvalidTypeException {
-        TypeObject enumType = getTypeFromStr(type);
-        TrackResponse response = stub.track(TrackRequest.newBuilder().setType(enumType).setId(id).build());
-        return convertObservation(response.getObservation());
+    public ObservationObject track(String type, String id) throws InvalidTypeException, NoObservationsFoundException {
+        try{
+            TypeObject enumType = getTypeFromStr(type);
+            TrackResponse response = stub.track(TrackRequest.newBuilder().setType(enumType).setId(id).build());
+            return convertObservation(response.getObservation());
+        } catch (RuntimeException e) {
+            throw new NoObservationsFoundException(e.getMessage());
+        }
     }
     
-    public List<ObservationObject> trackMatch(String type, String partId) throws InvalidTypeException {
-        TrackMatchRequest.Builder request = TrackMatchRequest.newBuilder();
+    public List<ObservationObject> trackMatch(String type, String partId) throws InvalidTypeException, NoObservationsFoundException {
+        try {
+            TrackMatchRequest.Builder request = TrackMatchRequest.newBuilder();
 
-        request.setType(getTypeFromStr(type));
-        request.setPartialId(partId);        
-        TrackMatchResponse response = stub.trackMatch(request.build());
+            request.setType(getTypeFromStr(type));
+            request.setPartialId(partId);        
+            TrackMatchResponse response = stub.trackMatch(request.build());
         
-        return convertObservationList(response.getObservationList());
+            return convertObservationList(response.getObservationList());
+        } catch (RuntimeException e) {
+            throw new NoObservationsFoundException(e.getMessage());
+        }
     }
 
-    public List<ObservationObject> trace(String type, String id) throws InvalidTypeException {
-        TraceRequest.Builder request = TraceRequest.newBuilder();
+    public List<ObservationObject> trace(String type, String id) throws InvalidTypeException, NoObservationsFoundException {
+        try {
+            TraceRequest.Builder request = TraceRequest.newBuilder();
 
-        request.setType(getTypeFromStr(type));
-        request.setId(id);
+            request.setType(getTypeFromStr(type));
+            request.setId(id);
         
-        TraceResponse response = stub.trace(request.build());
+            TraceResponse response = stub.trace(request.build());
 
-        return convertObservationList(response.getObservationList());
+            return convertObservationList(response.getObservationList());
+        } catch (RuntimeException e) {
+            throw new NoObservationsFoundException(e.getMessage());
+        }
     }
 
     /* 
