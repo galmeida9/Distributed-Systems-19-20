@@ -34,17 +34,17 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		List<Double> listCoords;
 		try {
 			listCoords = backend.camInfo(request.getCamName());
+			Coordinates coords = Coordinates.newBuilder()
+					.setLat(listCoords.get(0))
+					.setLong(listCoords.get(1))
+					.build();
+			CamInfoResponse response = CamInfoResponse.newBuilder().setCoordinates(coords).build();
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
 		}
 		catch (CameraNotFoundException e) {
-			throw new RuntimeException(e.getMessage());
+			responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
 		}
-		Coordinates coords = Coordinates.newBuilder()
-				.setLat(listCoords.get(0))
-				.setLong(listCoords.get(1))
-				.build();
-		CamInfoResponse response = CamInfoResponse.newBuilder().setCoordinates(coords).build();
-		responseObserver.onNext(response);
-		responseObserver.onCompleted();
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
 		} catch (CameraNotFoundException | InvalidIdException e){
-			throw new RuntimeException(e.getMessage());
+			responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
 		}
 	}
 
@@ -77,7 +77,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
 		} catch (InvalidIdException | NoObservationsException e) {
-			throw new RuntimeException(e.getMessage());
+			responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
 		}
 	}
 
@@ -94,7 +94,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
 		} catch (InvalidIdException | NoObservationsException e) {
-			throw new RuntimeException(e.getMessage());
+			responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
 		}
 	}
 
@@ -110,7 +110,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
 		} catch (InvalidIdException | NoObservationsException e) {
-			throw new RuntimeException(e.getMessage());
+			responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
 		}
 	}
 
@@ -118,8 +118,6 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void ctrlPing(CtrlPingRequest request, StreamObserver<CtrlPingResponse> responseObserver) {
-		// FIXME: Check if this is right
-
 		String input = request.getInput();
 		String output = "Hello " + input + "!";
 		CtrlPingResponse response = CtrlPingResponse.newBuilder().setOutput(output).build();
@@ -141,8 +139,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void ctrlInit(CtrlInitRequest request, StreamObserver<CtrlInitResponse> responseObserver) {
-		// TODO:
-		CtrlInitResponse response = CtrlInitResponse.newBuilder().build();
+		CtrlInitResponse response = CtrlInitResponse.newBuilder().setStatus(Status.OK).build();
 		responseObserver.onNext(response);
 		responseObserver.onCompleted();
 	}
