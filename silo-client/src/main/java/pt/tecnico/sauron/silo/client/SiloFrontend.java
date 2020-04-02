@@ -71,7 +71,7 @@ public class SiloFrontend {
     public String camInfo(String camName) throws CameraNotFoundException {
         try {
             CamInfoResponse response = stub.camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
-            return String.valueOf(response.getCoordinates().getLat()) + String.valueOf(response.getCoordinates().getLong());
+            return String.valueOf(response.getCoordinates().getLat()) + "," + String.valueOf(response.getCoordinates().getLong());
         }
         catch (RuntimeException e) {
             throw new CameraNotFoundException(e.getMessage());

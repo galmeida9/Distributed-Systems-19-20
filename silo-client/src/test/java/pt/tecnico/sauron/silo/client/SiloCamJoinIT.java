@@ -6,7 +6,7 @@ import org.junit.jupiter.api.*;
 
 import pt.tecnico.sauron.silo.client.SiloFrontend.ResponseStatus;
 
-public class CamJoin extends BaseIT {
+public class SiloCamJoinIT extends BaseIT {
 	
 	// static members
     private static String HOST = "localhost";
@@ -74,19 +74,19 @@ public class CamJoin extends BaseIT {
     @Test
     public void nullCameraNameTest() {
         assertEquals(ResponseStatus.NOK, frontEnd.camJoin(null, DEFAULT_LAT, DEFAULT_LONG), 
-                    "Creating camera with a non valid name should return NOK");
+                    "Creating camera with a null name should return NOK");
     }
 
     @Test
     public void emptyCameraNameTest() {
         assertEquals(ResponseStatus.NOK, frontEnd.camJoin("", DEFAULT_LAT, DEFAULT_LONG), 
-                    "Creating camera with a non valid name should return NOK");
+                    "Creating camera with an empty name should return NOK");
     }
 
     @Test
     public void blankCameraNameTest() {
         assertEquals(ResponseStatus.NOK, frontEnd.camJoin("   ", DEFAULT_LAT, DEFAULT_LONG), 
-                    "Creating camera with a non valid name should return NOK");
+                    "Creating camera with a blank name should return NOK");
     }
 
 }

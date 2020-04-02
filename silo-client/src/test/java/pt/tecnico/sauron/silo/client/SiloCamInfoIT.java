@@ -1,10 +1,11 @@
 package pt.tecnico.sauron.silo.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.*;
 
 import org.junit.jupiter.api.*;
 
-public class CamInfo extends BaseIT {
+public class SiloCamInfoIT extends BaseIT {
 	
 	// static members
     private static String HOST = "localhost";
@@ -14,7 +15,7 @@ public class CamInfo extends BaseIT {
     private static String DEFAULT_CAMERA = "camName";
     private static double DEFAULT_LAT = 1.232;
     private static double DEFAULT_LONG = -5.343;
-    private static String COORDENATES = "1.232;-5.343";
+    private static String COORDENATES = "1.232,-5.343";
 	
 	
 	// one-time initialization and clean-up
@@ -45,20 +46,32 @@ public class CamInfo extends BaseIT {
 	
 	@Test
 	public void correctArgumentstest() {
-        assertEquals(COORDENATES, frontEnd.camInfo(DEFAULT_CAMERA), 
+        try{
+            assertEquals(COORDENATES, frontEnd.camInfo(DEFAULT_CAMERA), 
                     "Should return the coordenates of the camera.");
+        } catch (CameraNotFoundException e) {
+            fail("Should not have thrown any exception.");
+        }
     }
 
     @Test
     public void nullCameraNameTest() {
-        assertEquals(null, frontEnd.camInfo(null), 
-                    "Invalid argument, should return null.");
+        Assertions.assertThrows(CameraNotFoundException.class, () -> frontEnd.camInfo(null));
+    }
+
+    @Test
+    public void emptyCameraNameTest() {
+        Assertions.assertThrows(CameraNotFoundException.class, () -> frontEnd.camInfo(""));
+    }
+
+    @Test
+    public void blankCameraNameTest() {
+        Assertions.assertThrows(CameraNotFoundException.class, () -> frontEnd.camInfo("   "));
     }
 
     @Test
     public void nonExistingCameraNameTest() {
-        assertEquals(null, frontEnd.camInfo("fgjngfjkhfdhgjkd"), 
-                    "Camera does not exists, should return null.");
+        Assertions.assertThrows(CameraNotFoundException.class, () -> frontEnd.camInfo("fkdjsfljs"));
     }
 
 }
