@@ -88,7 +88,7 @@ public class SiloFrontend {
                     .setId(observation.getId())
                     .setCamName(observation.getCamName()));
         }
-        
+
         ReportResponse response = stub.report(request.build());
         return getStatus(response.getStatus());
     }

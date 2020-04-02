@@ -52,16 +52,18 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		try{
 			List<ObservationEntity> obsEntity = new ArrayList<>();
 			List<Observation> obs = request.getObservationList();
-
 			for (Observation observation : obs){
 				obsEntity.add(convertToObsEntity(observation));
 			}
 
-			backend.report(request.getObservation(0).getCamName(), obsEntity);
-			ReportResponse response = ReportResponse.newBuilder().build();
-			responseObserver.onNext(response);
+			boolean res = backend.report(request.getObservation(0).getCamName(), obsEntity);
+
+			ReportResponse.Builder response = ReportResponse.newBuilder();
+			if (res) response.setStatus(Status.OK);
+		    else response.setStatus(Status.NOK);
+			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
-		} catch (CameraNotFoundException e){
+		} catch (CameraNotFoundException | InvalidIdException e){
 			throw new RuntimeException(e.getMessage());
 		}
 	}

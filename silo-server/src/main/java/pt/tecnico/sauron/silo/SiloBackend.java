@@ -49,11 +49,12 @@ class SiloBackend {
     }
 
 
-        public void report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException {
-        if (!cameras.containsKey(camName))
+        public boolean report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
+        if (!cameras.containsKey(camName) || camName.isBlank() || camName.isEmpty())
             throw new CameraNotFoundException("Camera with name " + camName + " not found");
 
         for (ObservationEntity observation : obs){
+            checkId(observation.getType(),observation.getId());
             observation.setDateTime(LocalDateTime.now());
 
             List<ObservationEntity> oldObs = getObservations(observation.getType(),observation.getId());
@@ -64,6 +65,7 @@ class SiloBackend {
             }
             oldObs.add(observation);
         }
+        return true;
     }
 
 
