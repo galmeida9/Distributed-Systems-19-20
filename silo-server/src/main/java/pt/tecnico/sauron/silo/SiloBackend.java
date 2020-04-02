@@ -70,6 +70,10 @@ class SiloBackend {
 
 
     private void checkId(ObservationEntityType type, String id) throws InvalidIdException {
+        if (id == null || id.isEmpty() || id.isBlank()) {
+            throw new InvalidIdException("Id cannot be null, empty or blank.");
+        }
+        
         switch(type) {
             case PERSON:
                 try {
