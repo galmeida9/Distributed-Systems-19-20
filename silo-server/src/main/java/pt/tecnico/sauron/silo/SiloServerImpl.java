@@ -129,9 +129,13 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void ctrlClear(CtrlClearRequest request, StreamObserver<CtrlClearResponse> responseObserver) {
-		// TODO:
-		CtrlClearResponse response = CtrlClearResponse.newBuilder().build();
-		responseObserver.onNext(response);
+		boolean res = backend.ctrlClear();
+
+		CtrlClearResponse.Builder response = CtrlClearResponse.newBuilder();
+		if (res) response.setStatus(Status.OK);
+		else response.setStatus(Status.NOK);
+
+		responseObserver.onNext(response.build());
 		responseObserver.onCompleted();
 	}
 
