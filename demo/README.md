@@ -26,3 +26,12 @@ No ficheiro `eye_2.txt`, envia-se observações do tipo `person` e envia-se para
 No ficheiro `eye_3.txt`, envia-se observações do tipo `car` e envia-se para o servidor com sucesso.
 
 No ficheiro `eye_4.txt`, demonstra-se a utilização de comentários e do comando `zzz` com 1000 milisegundos (1 segundo), enviando depois uma observação.
+
+### Spotter
+
+Para correr, é necessário primeiro iniciar o silo-server.
+De seguida, na pasta `spotter` corre-se o comando `target/appassembler/bin/spotter localhost 8080`.
+
+#### Utilização
+
+#### Exemplos

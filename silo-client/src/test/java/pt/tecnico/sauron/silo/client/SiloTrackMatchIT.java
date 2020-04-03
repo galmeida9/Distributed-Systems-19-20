@@ -99,7 +99,7 @@ public class SiloTrackMatchIT extends BaseIT{
     @Test
     public void successMiddlePartIdTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trackMatch(CAR, "2*S*1");
+	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_PART_MIDDLE);
 	        Assert.assertEquals(CAR, obs.get(0).getType());
 	        Assert.assertEquals(CAR_ID_VALID, obs.get(0).getId());
 	        Assert.assertEquals(CAM, obs.get(0).getCamName());
@@ -134,7 +134,7 @@ public class SiloTrackMatchIT extends BaseIT{
     @Test
     public void successMultipleAsteriskIdTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_PART_END);
+	        List<ObservationObject> obs = frontend.trackMatch(CAR, "2*S*1");
 	        Assert.assertEquals(CAR, obs.get(0).getType());
 	        Assert.assertEquals(CAR_ID_VALID, obs.get(0).getId());
 	        Assert.assertEquals(CAM, obs.get(0).getCamName());
