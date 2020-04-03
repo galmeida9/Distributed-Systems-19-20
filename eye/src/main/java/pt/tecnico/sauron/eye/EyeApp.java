@@ -78,6 +78,14 @@ public class EyeApp {
 			else if (line[0].equals("zzz") && line.length == 2 && isNumeric(line[1])) {
 				log("PAUSE: " + line[1] + " ms.");
 				pause += Integer.parseInt(line[1]);
+
+				try {
+					sleep(pause);
+					pause = 0;
+				}
+				catch (InterruptedException e) {
+						log("%s", e.getMessage(), true);
+				}
 			}
 			// Check if an observation is sent
 			else if (validTypes.contains(line[0]) && line.length == 2) {
@@ -92,14 +100,7 @@ public class EyeApp {
 			else if (line[0].equals("") && line.length == 1) {
 				log("EMPTY LINE");
 
-				try {
-					sleep(pause);
-					pause = 0;
-					report();
-				}
-				catch (InterruptedException e) {
-					log("%s", e.getMessage(), true);
-				}
+				report();
 			}
 			else log("UNKNOWN");
 		}
