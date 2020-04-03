@@ -92,7 +92,7 @@ public class EyeApp {
 				String id = line[1].strip();
 				String type = line[0].strip();
 				log("OBS - TYPE: " + type + ", ID: " + id);
-				System.out.println("Added a " + type + " and id " + id);
+				System.out.println("Added a " + type + " with id " + id + ".");
 
 				observations.add(new ObservationObject(type, id, camName));
 			}
