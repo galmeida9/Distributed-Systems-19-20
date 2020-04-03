@@ -42,11 +42,11 @@ No ficheiro `eye_4.txt`, demonstra-se a utilização de comentários e do comand
 
 ### Spotter
 
-Para correr, é necessário primeiro iniciar o silo-server. De seguida, na pasta spotter corre-se o comando target/appassembler/bin/spotter localhost 8080.
+Para correr, é necessário primeiro iniciar o silo-server. De seguida, na pasta spotter corre-se o comando `target/appassembler/bin/spotter localhost 8080`.
 
 #### Utilização
 
-Para procurar a observação do carro ou pessoa com o identificador ou fragmento de identificador executar o comando `spot [tipo] [id/fragmentoId]`, obtendo como resultado observações com o formato: Tipo,Identificador,Data-Hora,Nome-Câmera,Latitude-Câmera,Longitude-Câmera.
+Para procurar a observação do carro ou pessoa com o identificador ou fragmento de identificador executar o comando `spot [tipo] [id/fragmentoId]`, obtendo como resultado observações com o formato: `Tipo,Identificador,Data-Hora,Nome-Câmera,Latitude-Câmera,Longitude-Câmera`.
 
 Para procurar o caminho percorrido pelo carro ou pessoa com o identificador exato executar o comando `trail [tipo] [id]`, obtendo como resultado observações com o formato: Tipo,Identificador,Data-Hora,Nome-Câmera,Latitude-Câmera,Longitude-Câmera.
 
