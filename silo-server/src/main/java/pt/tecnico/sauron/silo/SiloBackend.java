@@ -73,7 +73,7 @@ class SiloBackend {
         if (id == null || id.isEmpty() || id.isBlank()) {
             throw new InvalidIdException("Id cannot be null, empty or blank.");
         }
-        
+
         switch(type) {
             case PERSON:
                 try {
@@ -112,7 +112,7 @@ class SiloBackend {
         pattern += "$";
 
         for (String id: observations.get(type).keySet()) {
-            if (id.matches(pattern)) matches.add(track(type, id)); 
+            if (id.matches(pattern)) matches.add(track(type, id));
         }
 
         return matches;

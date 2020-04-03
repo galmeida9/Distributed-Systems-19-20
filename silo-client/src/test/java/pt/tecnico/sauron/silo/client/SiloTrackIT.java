@@ -37,7 +37,6 @@ public class SiloTrackIT extends BaseIT{
 	public static void oneTimeSetUp() throws ReportException, InvalidTypeException {
 		List<ObservationObject> obsList = new ArrayList<>();
 		obsList.add(new ObservationObject(PERSON, PERSON_ID_VALID,CAM_1));
-		obsList.add(new ObservationObject(PERSON, "12", CAM_1));
 		obsList.add(new ObservationObject(CAR, CAR_ID_VALID,CAM_1));
 		obsList.add(new ObservationObject(PERSON, PERSON_ID_VALID,CAM_2));
 

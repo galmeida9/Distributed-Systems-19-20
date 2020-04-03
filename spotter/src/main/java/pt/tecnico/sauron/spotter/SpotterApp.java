@@ -56,9 +56,6 @@ public class SpotterApp {
                     break;
 
                 case "help":
-                    if (line.length > 1){
-                        //TODO
-                    }
                     help();
                     break;
 
@@ -69,21 +66,21 @@ public class SpotterApp {
                     System.out.printf(silo.ctrlPing(line[1]));
                     break;
 
-                /*case "crtl_clear":
-                    //TODO
+                case "crtl_clear":
                     SiloFrontend.ResponseStatus res = silo.ctrlClear();
+                    System.out.println("CtrlClear was " + res.toString());
+                    break;
 
                 case "ctrl_init":
-                    //TODO
-                    SiloFrontend.ResponseStatus res = silo.ctrlInit();*/
-
+                    SiloFrontend.ResponseStatus status = silo.ctrlInit();
+                    System.out.println("CtrlInit was " + status.toString());
+                    break;
 
                 case "exit":
                     scanner.close();
                 default:
 
             }
-
         }
         silo.exit();
     }
@@ -108,6 +105,8 @@ public class SpotterApp {
             } catch (CameraNotFoundException e) {
                 // FIXME: wrong treatment
                 e.printStackTrace();
+                //System.out.println(e.getMessage());
+
                 return "";
             }
         }

@@ -23,9 +23,9 @@ public class SiloTrackMatchIT extends BaseIT{
 	private static String PERSON_PART_ID = "1*";
 	private static String CAR = "car";
 	private static String CAR_ID_VALID = "20SD21";
-	private static String CAR_PART_BEGGINING = "*21";
+	private static String CAR_PART_BEGGINING = "20*";
 	private static String CAR_PART_MIDDLE = "2*1";
-	private static String CAR_PART_END = "20*";
+	private static String CAR_PART_END = "*21";
 	private static String CAR_ID_INVALID = "202122";
 	private static String CAM = "camName";
     private static double CAM_LAT = 1.232;
