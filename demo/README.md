@@ -60,14 +60,17 @@ Para obter informaçao sobre os comandos executar o comando `help`.
 
 #### Exemplos
 
-No ficheiro spotter_1.txt, procura a observação do carro usando o identificador do carro, que terá como resultado: `car,7013LL,2019-10-04T10:02:07,Tagus,38.737613,-9.303164`</br>
+No ficheiro spotter_1.txt, procura a observação do carro usando o identificador do carro, que terá como resultado: 
+`car,7013LL,2019-10-04T10:02:07,Tagus,38.737613,-9.303164`</br>
 
-No ficheiro spotter_2.txt, procura a observação da pessoa usando o identificador da pessoa, que terá como resultado: `person,111,2019-10-04T10:02:07,Tagus,38.737613,-9.303164`</br>
+No ficheiro spotter_2.txt, procura a observação da pessoa usando o identificador da pessoa, que terá como resultado: 
+`person,111,2019-10-04T10:02:07,Tagus,38.737613,-9.303164`</br>
 
 No ficheiro spotter_3.txt, procura a observação do carro usando um fragmento do identificador do carro, que terá como resultado: `car,5759LL,2019-10-22T09:07:51,Tagus,38.737613,-9.303164`</br>
 `car,7013LL,2019-10-04T11:02:07,Tagus,38.737613,-9.303164`</br>
 
-No ficheiro spotter_4.txt, procura o caminho percorrido pelo carro usando o identificador do carro, que terá como resultado: `car,7013LL,2019-10-04T10:02:07,Tagus,38.737613,-9.303164`</br>
+No ficheiro spotter_4.txt, procura o caminho percorrido pelo carro usando o identificador do carro, que terá como resultado: 
+`car,7013LL,2019-10-04T10:02:07,Tagus,38.737613,-9.303164`</br>
 `car,7013LL,2019-10-03T08:10:20,Alameda,38.736748,-9.138908`</br>
 `car,7013LL,2019-10-02T22:33:01,Tagus,38.737613,-9.303164`</br>
 
