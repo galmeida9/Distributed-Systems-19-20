@@ -1,2 +1,2 @@
-spot car 7013LL
+spot car 20SD24
 exit
