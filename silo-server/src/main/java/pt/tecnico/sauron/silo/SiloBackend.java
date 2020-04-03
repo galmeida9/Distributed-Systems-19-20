@@ -68,6 +68,7 @@ class SiloBackend {
             return true;
     }
 
+
     private void checkId(ObservationEntityType type, String id) throws InvalidIdException {
         if (id == null || id.isEmpty() || id.isBlank()) {
             throw new InvalidIdException("Id cannot be null, empty or blank.");
@@ -83,9 +84,9 @@ class SiloBackend {
                 return;
             case CAR:
                 String licensePlatePattern = "([A-Z][A-Z]|[0-9][0-9])([A-Z][A-Z]|[0-9][0-9])([A-Z][A-Z]|[0-9][0-9])";
-                if (!id.matches(licensePlatePattern)
-                    || id.chars().filter(Character::isDigit).count() > 4
-                    || id.chars().filter(Character::isLetter).count() > 4)
+                if (!id.matches(licensePlatePattern) 
+                    || id.chars().filter(Character::isDigit).count() > 4 
+                    || id.chars().filter(Character::isLetter).count() > 4) 
                     throw new InvalidIdException(id + " for type " + type.toString() + " is not a license plate.");
                 return;
             default:
@@ -112,7 +113,7 @@ class SiloBackend {
         pattern = "^" + pattern + "$";
 
         for (String id: observations.get(type).keySet()) {
-            if (id.matches(pattern)) matches.add(track(type, id));
+            if (id.matches(pattern)) matches.add(track(type, id)); 
         }
 
         return matches;
@@ -120,7 +121,8 @@ class SiloBackend {
 
     public List<ObservationEntity> trace(ObservationEntityType type, String id) throws InvalidIdException {
         checkId(type, id);
-        List<ObservationEntity> obs = new ArrayList<>(getObservations(type, id));
+        List<ObservationEntity> obs = getObservations(type, id);
+        if (obs == null) return new ArrayList<>();
         Collections.reverse(obs);
         return obs;
     }
@@ -130,5 +132,5 @@ class SiloBackend {
         cameras.clear();
         return observations.isEmpty() && cameras.isEmpty();
     }
-
+    
 }
