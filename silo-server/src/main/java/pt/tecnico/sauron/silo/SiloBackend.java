@@ -17,7 +17,7 @@ class SiloBackend {
             observations.put(type, new ConcurrentHashMap<String, List<ObservationEntity>>());
         }
     }
-    
+
     // Private auxiliary methods
     private Map<String, List<ObservationEntity>> getTypeObservations(ObservationEntityType type) {
         return observations.get(type);
@@ -50,24 +50,23 @@ class SiloBackend {
 
 
         public boolean report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
-        if (!cameras.containsKey(camName) || camName.isBlank() || camName.isEmpty())
-            throw new CameraNotFoundException("Camera with name " + camName + " not found");
+            if (!cameras.containsKey(camName) || camName.isBlank() || camName.isEmpty())
+                throw new CameraNotFoundException("Camera with name " + camName + " not found");
 
-        for (ObservationEntity observation : obs){
-            checkId(observation.getType(),observation.getId());
-            observation.setDateTime(LocalDateTime.now());
+            for (ObservationEntity observation : obs){
+                checkId(observation.getType(),observation.getId());
+                observation.setDateTime(LocalDateTime.now());
 
-            List<ObservationEntity> oldObs = getObservations(observation.getType(),observation.getId());
-            //no observations with that id
-            if (oldObs == null){
-                oldObs = new ArrayList<>();
-                observations.get(observation.getType()).put(observation.getId(), oldObs);
+                List<ObservationEntity> oldObs = getObservations(observation.getType(),observation.getId());
+                //no observations with that id
+                if (oldObs == null){
+                    oldObs = new ArrayList<>();
+                    observations.get(observation.getType()).put(observation.getId(), oldObs);
+                }
+                oldObs.add(observation);
             }
-            oldObs.add(observation);
-        }
-        return true;
+            return true;
     }
-
 
     private void checkId(ObservationEntityType type, String id) throws InvalidIdException {
         if (id == null || id.isEmpty() || id.isBlank()) {
@@ -84,9 +83,9 @@ class SiloBackend {
                 return;
             case CAR:
                 String licensePlatePattern = "([A-Z][A-Z]|[0-9][0-9])([A-Z][A-Z]|[0-9][0-9])([A-Z][A-Z]|[0-9][0-9])";
-                if (!id.matches(licensePlatePattern) 
-                    || id.chars().filter(Character::isDigit).count() > 4 
-                    || id.chars().filter(Character::isLetter).count() > 4) 
+                if (!id.matches(licensePlatePattern)
+                    || id.chars().filter(Character::isDigit).count() > 4
+                    || id.chars().filter(Character::isLetter).count() > 4)
                     throw new InvalidIdException(id + " for type " + type.toString() + " is not a license plate.");
                 return;
             default:
@@ -119,10 +118,9 @@ class SiloBackend {
         return matches;
     }
 
-    public List<ObservationEntity> trace(ObservationEntityType type, String id) throws InvalidIdException, NoObservationsException {
+    public List<ObservationEntity> trace(ObservationEntityType type, String id) throws InvalidIdException {
         checkId(type, id);
         List<ObservationEntity> obs = new ArrayList<>(getObservations(type, id));
-        if (obs.isEmpty()) throw new NoObservationsException("No observations found for " + id);
         Collections.reverse(obs);
         return obs;
     }

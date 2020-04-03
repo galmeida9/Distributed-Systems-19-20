@@ -15,7 +15,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	private SiloBackend backend = new SiloBackend();
 
 	/* Functionality operations */
-	
+
 	@Override
 	public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver){
 
@@ -109,7 +109,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			}
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
-		} catch (InvalidIdException | NoObservationsException e) {
+		} catch (InvalidIdException e) {
 			throw new RuntimeException(e.getMessage());
 		}
 	}
@@ -146,7 +146,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		responseObserver.onNext(response);
 		responseObserver.onCompleted();
 	}
-	
+
 	private Observation convertToObservation(ObservationEntity observation) {
 		return Observation.newBuilder()
 						.setType(convertToType(observation.getType()))
