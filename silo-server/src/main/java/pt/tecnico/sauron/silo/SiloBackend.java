@@ -108,7 +108,7 @@ class SiloBackend {
         List<ObservationEntity> matches = new ArrayList<>();
         String pattern = partId.replace("*", ".*");
         if (pattern == null) pattern = ".*(" + partId + ").*";
-        pattern += "$";
+        pattern = "^" + pattern + "$";
 
         for (String id: observations.get(type).keySet()) {
             if (id.matches(pattern)) matches.add(track(type, id)); 
