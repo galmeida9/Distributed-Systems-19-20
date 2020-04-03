@@ -34,14 +34,14 @@ public class SpotterApp {
 
         while (scanner.hasNextLine()) {
             String[] line = scanner.nextLine().strip().split(" ", 2);
-            String[] commandArgs;
 
             switch (line[0]) {
                 case "spot":
-                    commandArgs = line[1].split(" ");
+                    String[] commandArgs = line[1].split(" ");
                     if (commandArgs.length != 2){
                         System.out.println("Wrong number of arguments");
-                        continue;
+                        System.out.println("Usage: spot <type> <id/partId>");
+                        break;
                     }
                     spot(commandArgs[0], commandArgs[1]);
                     break;
@@ -50,7 +50,8 @@ public class SpotterApp {
                     String[] arguments = line[1].split(" ");
                     if (arguments.length != 2){
                         System.out.println("Wrong number of arguments");
-                        continue;
+                        System.out.println("Usage: trail <type> <id>");
+                        break;
                     }
                     trail(arguments[0], arguments[1]);
                     break;
@@ -60,13 +61,15 @@ public class SpotterApp {
                     break;
 
                 case "ctrl_ping":
-                    if (line.length < 1){
-                        //TODO
+                    if (line.length < 2){
+                        System.out.println("Wrong number of arguments");
+                        System.out.println("Usage: ctrl_ping <message>");
+                        break;
                     }
-                    System.out.printf(silo.ctrlPing(line[1]));
+                    System.out.println(silo.ctrlPing(line[1]));
                     break;
 
-                case "crtl_clear":
+                case "ctrl_clear":
                     SiloFrontend.ResponseStatus res = silo.ctrlClear();
                     System.out.println("CtrlClear was " + res.toString());
                     break;
@@ -78,8 +81,11 @@ public class SpotterApp {
 
                 case "exit":
                     scanner.close();
-                default:
+                    break;
 
+                default:
+                    System.out.println("Command does not exist");
+                    help();
             }
         }
         silo.exit();
@@ -103,9 +109,7 @@ public class SpotterApp {
                 coordinates = silo.camInfo(camName);
                 cams.put(camName, coordinates);
             } catch (CameraNotFoundException e) {
-                // FIXME: wrong treatment
-                e.printStackTrace();
-                //System.out.println(e.getMessage());
+                System.out.println(e.getMessage());
 
                 return "";
             }
@@ -116,7 +120,7 @@ public class SpotterApp {
                 + obs.getId() + ','
                 + obs.getDatetime() + ','
                 + camName + ','
-                + coordinates;
+                + coordinates +'\n';
     }
 
 
@@ -128,7 +132,7 @@ public class SpotterApp {
 	        res.add(convertToString(observation, cams));
 
 	    for (String observationStr : res)
-	        System.out.printf(observationStr);
+	        System.out.print(observationStr);
     }
 
 
@@ -168,12 +172,12 @@ public class SpotterApp {
 
 
     public static void help(){
-	    System.out.printf("Spot command - shows latest observation of a person or object-> spot <type> <id>  Comando spot\n" +
+	    System.out.print("Spot command - shows latest observation of a person or object-> spot <type> <id/partId>  Comando spot\n" +
                 "Trail command - shows trail of a person or object -> trail <type> <id>\n" +
                 "Ping command - indicates state of server -> ctrl_ping <message>\n" +
                 "Clear command - cleans state of server -> ctrl_clear\n" +
                 "Init command - initializes parameters -> ctrl_init\n" +
-                "Exit command - exits Spotter -> exit"
+                "Exit command - exits Spotter -> exit\n"
         );
     }
 }

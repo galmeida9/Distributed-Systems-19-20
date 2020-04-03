@@ -1,0 +1,4 @@
+spot car 70*
+spot car 7*L
+spot car *LL
+exit
