@@ -107,6 +107,7 @@ class SiloBackend {
     public List<ObservationEntity> trackMatch(ObservationEntityType type, String partId) throws InvalidIdException, NoObservationsException {
         List<ObservationEntity> matches = new ArrayList<>();
         String pattern = partId.replace("*", ".*");
+        if (pattern == null) pattern = ".*(" + partId + ").*";
         pattern += "$";
 
         for (String id: observations.get(type).keySet()) {
