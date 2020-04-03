@@ -45,13 +45,17 @@ De seguida, na pasta `spotter` corre-se o comando `target/appassembler/bin/spott
 
 #### Utilização
 
-Para procurar a observação do carro ou pessoa com o identificador ou fragmento de identificador executar o comando `spot [tipo] [id/fragmentoId]`, obtendo como resultado observações com o formato: Tipo,Identificador,Data-Hora,Nome-Câmera,Latitude-Câmera,Longitude-Câmera. <br/>
-Para procurar o caminho percorrido pelo carro ou pessoa com o identificador exato executar o comando `trail [tipo] [id]` , obtendo como resultado observações com o formato: Tipo,Identificador,Data-Hora,Nome-Câmera,Latitude-Câmera,Longitude-Câmera.<br/>
+Para procurar a observação do carro ou pessoa com o identificador ou fragmento de identificador executar o comando `spot [tipo] [id/fragmentoId]`, obtendo como resultado observações com o formato: Tipo,Identificador,Data-Hora,Nome-Câmera,Latitude-Câmera,Longitude-Câmera. 
+
+Para procurar o caminho percorrido pelo carro ou pessoa com o identificador exato executar o comando `trail [tipo] [id]` , obtendo como resultado observações com o formato: Tipo,Identificador,Data-Hora,Nome-Câmera,Latitude-Câmera,Longitude-Câmera.
+
 Para saber o estado do servidor executar o comando `ctrl_ping`, recebe como resposta `Hello [mensagem]!`<br/>
 Para limpar o servidor executar o comando `ctrl_clear`.<br/>
 Para inicializar parâmetros executar o comando `ctrl_init`.<br/>
 Tanto o comando `ctrl_clear` como o `ctrl_init`recebem como resposta do servidor o `[Status]`, sendo `OK` se tudo correu bem e `NOK` se ocorreram erros.<br/>
+
 Para sair do cliente Spotter executar o comando `exit`.<br/>
+
 Para obter informaçao sobre os comandos executar o comando `help`.<br/>
 
 #### Exemplos
