@@ -81,21 +81,21 @@ public class SiloTrackIT extends BaseIT{
     }
 
 	@Test
-	public void tooManyOfSameGroupCarId(){
+	public void tooManyOfSameGroupCarIdTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
 			frontend.track(CAR, "AAAAAA");
 		});
 	}
 
 	@Test
-	public void invalidGroupCarId(){
+	public void invalidGroupCarIdTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
 			frontend.track(CAR, "A1AA1B");
 		});
 	}
 
 	@Test
-	public void noObservationForId(){
+	public void noObservationForIdTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
 			frontend.track(PERSON, "137");
 		});

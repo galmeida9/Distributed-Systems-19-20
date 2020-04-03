@@ -65,7 +65,7 @@ public class SiloTrackMatchIT extends BaseIT{
 
 
     @Test
-    public void successCompleteId() {
+    public void successCompleteIdTest() {
 	    try {
 	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_ID_VALID);
 	        Assert.assertEquals(CAR, obs.get(0).getType());
@@ -79,7 +79,7 @@ public class SiloTrackMatchIT extends BaseIT{
 
 
     @Test
-    public void successBeginningPartId() {
+    public void successBeginningPartIdTest() {
 	    try {
 	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_PART_BEGGINING);
 	        Assert.assertEquals(CAR, obs.get(0).getType());
@@ -97,7 +97,7 @@ public class SiloTrackMatchIT extends BaseIT{
     }
 
     @Test
-    public void successMiddlePartId() {
+    public void successMiddlePartIdTest() {
 	    try {
 	        List<ObservationObject> obs = frontend.trackMatch(CAR, "2*S*1");
 	        Assert.assertEquals(CAR, obs.get(0).getType());
@@ -114,7 +114,7 @@ public class SiloTrackMatchIT extends BaseIT{
     }
 
     @Test
-    public void successEndPartId() {
+    public void successEndPartIdTest() {
 	    try {
 	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_PART_END);
 	        Assert.assertEquals(CAR, obs.get(0).getType());
@@ -132,7 +132,7 @@ public class SiloTrackMatchIT extends BaseIT{
 
 
     @Test
-    public void successMultipleAsteriskId() {
+    public void successMultipleAsteriskIdTest() {
 	    try {
 	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_PART_END);
 	        Assert.assertEquals(CAR, obs.get(0).getType());
@@ -149,7 +149,7 @@ public class SiloTrackMatchIT extends BaseIT{
     }
 
     @Test
-    public void successNoObservation() {
+    public void successNoObservationTest() {
 	    try {
 	        List<ObservationObject> obs = frontend.trackMatch(CAR, "40SA21");
 	        Assertions.assertTrue(obs.isEmpty());
