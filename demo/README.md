@@ -26,3 +26,29 @@ No ficheiro `eye_2.txt`, envia-se observações do tipo `person` e envia-se para
 No ficheiro `eye_3.txt`, envia-se observações do tipo `car` e envia-se para o servidor com sucesso.
 
 No ficheiro `eye_4.txt`, demonstra-se a utilização de comentários e do comando `zzz` com 1000 milisegundos (1 segundo), enviando depois uma observação.
+
+### Spotter
+
+Para correr, é necessário primeiro iniciar o silo-server.
+De seguida, na pasta `spotter` corre-se o comando `target/appassembler/bin/spotter localhost 8080`.
+
+#### Utilização
+
+Para procurar a observação do carro ou pessoa com o identificador ou fragmento de identificador executar o comando `spot [tipo] [id/fragmentoId]`. <br/>
+Para procurar o caminho percorrido pelo carro ou pessoa com o identificador exato executar o comando `trail [tipo] [id]`.<br/>
+Para saber o estado do servidor executar o comando `ctrl_ping`.<br/>
+Para limpar o servidor executar o comando `ctrl_clear`.<br/>
+Para inicializar parâmetros executar o comando `ctrl_init`.<br/>
+Para sair do cliente Spotter executar o comando `exit`.<br/>
+Para obter informaçao sobre os comandos executar o comando `help`.<br/>
+
+#### Exemplos
+
+No ficheiro `spotter_1.txt`, procura a observação do carro usando o identificador do carro.
+No ficheiro `spotter_2.txt`, procura a observação da pessoa usando o identificador da pessoa.
+No ficheiro `spotter_3.txt`, procura a observação do carro usando um fragmento do identificador do carro.
+No ficheiro `spotter_4.txt`, procura o caminho percorrido pelo carro usando o identificador do carro.
+No ficheiro `spotter_5.txt`, utiliza-se os comandos de controlo para saber o estado do servidor e de seguida limpá-lo
+
+
+

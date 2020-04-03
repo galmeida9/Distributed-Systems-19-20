@@ -45,6 +45,7 @@ public class SiloReportIT extends BaseIT {
 	@AfterEach
 	public void tearDown() {
 		frontend.ctrlClear();
+		observations.clear();
 	}
 
 	// tests
@@ -59,7 +60,7 @@ public class SiloReportIT extends BaseIT {
 			res = frontend.report( observations);
 			assertEquals(SiloFrontend.ResponseStatus.OK, res);
 		}
-		catch (InvalidTypeException e){
+		catch (InvalidTypeException | ReportException e){
 			System.out.println(e.getMessage());
 			fail("Should not have thrown any exception");
 		}
@@ -70,14 +71,10 @@ public class SiloReportIT extends BaseIT {
 		// Given a observation with a invalid cam
 		observations.add(new ObservationObject(PERSON, PERSON_ID_VALID, CAM_NAME_NON_EXISTENT));
 
-		try {
-			SiloFrontend.ResponseStatus res;
-			res = frontend.report(observations);
-			assertEquals(SiloFrontend.ResponseStatus.OK, res);
-		}
-		catch (InvalidTypeException e){
-			fail("Should not have thrown any exception");
-		}
+		// Should throw exception
+		Assertions.assertThrows(ReportException.class, () -> {
+			frontend.report(observations);
+		});
 
 	}
 
@@ -86,21 +83,9 @@ public class SiloReportIT extends BaseIT {
 		// Given a observation with a empty cam name
 		observations.add(new ObservationObject(PERSON, PERSON_ID_VALID, ""));
 
-		// Should throw camera not found exception
-		Assertions.assertThrows(CameraNotFoundException.class, () -> {
+		// Should throw exception
+		Assertions.assertThrows(ReportException.class, () -> {
 				frontend.report(observations);
-		});
-	}
-
-	@Test
-	public void nullCamNameTest(){
-		// Given a observation with a null cam name
-		observations.add(new ObservationObject(PERSON, PERSON_ID_VALID, null));
-
-		//FIXME: Wrong exception
-		// Should throw camera not found exception
-		Assertions.assertThrows(CameraNotFoundException.class, () -> {
-			frontend.report(observations);
 		});
 	}
 
@@ -109,7 +94,7 @@ public class SiloReportIT extends BaseIT {
 		// Given a observation with an invalid type
 		observations.add(new ObservationObject("river", PERSON_ID_VALID, CAM_NAME_EXISTENT));
 
-		// Should throw invalid type exception
+		// Should throw exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
 			frontend.report(observations);
 		});
@@ -120,7 +105,7 @@ public class SiloReportIT extends BaseIT {
 		// Given a observation with an empty type
 		observations.add(new ObservationObject("", PERSON_ID_VALID, CAM_NAME_EXISTENT));
 
-		// Should throw invalid type exception
+		// Should throw exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
 			frontend.report(observations);
 		});
@@ -131,9 +116,8 @@ public class SiloReportIT extends BaseIT {
 		// Given a observation with an empty id
 		observations.add(new ObservationObject(PERSON, "", CAM_NAME_EXISTENT));
 
-		//FIXME: Wrong exception
-		// Should throw invalid id exception
-		Assertions.assertThrows(InvalidTypeException.class, () -> {
+		// Should throw exception
+		Assertions.assertThrows(ReportException.class, () -> {
 			frontend.report(observations);
 		});
 	}
@@ -143,9 +127,8 @@ public class SiloReportIT extends BaseIT {
 		// Given a observation with an invalid combination of type (person) and id
 		observations.add(new ObservationObject(PERSON, CAR_ID_VALID, CAM_NAME_EXISTENT));
 
-		//FIXME: Wrong exception
-		// Should throw invalid id exception
-		Assertions.assertThrows(InvalidTypeException.class, () -> {
+		// Should throw exception
+		Assertions.assertThrows(ReportException.class, () -> {
 			frontend.report(observations);
 		});
 	}
@@ -155,9 +138,8 @@ public class SiloReportIT extends BaseIT {
 		// Given a observation with an invalid combination of type (car) and id
 		observations.add(new ObservationObject(CAR, PERSON_ID_VALID, CAM_NAME_EXISTENT));
 
-		//FIXME: Wrong exception
-		// Should throw invalid id exception
-		Assertions.assertThrows(InvalidTypeException.class, () -> {
+		// Should throw exception
+		Assertions.assertThrows(ReportException.class, () -> {
 			frontend.report(observations);
 		});
 	}
@@ -167,9 +149,8 @@ public class SiloReportIT extends BaseIT {
 		// Given a observation with an invalid id for the car type
 		observations.add(new ObservationObject(CAR, CAR_ID_INVALID, CAM_NAME_EXISTENT));
 
-		//FIXME: Wrong exception
-		// Should throw invalid id exception
-		Assertions.assertThrows(InvalidTypeException.class, () -> {
+		// Should throw exception
+		Assertions.assertThrows(ReportException.class, () -> {
 			frontend.report(observations);
 		});
 	}
@@ -179,9 +160,8 @@ public class SiloReportIT extends BaseIT {
 		// Given a observation with an invalid id for the person type
 		observations.add(new ObservationObject(PERSON, PERSON_ID_INVALID, CAM_NAME_EXISTENT));
 
-		//FIXME: Wrong exception
-		// Should throw invalid id exception
-		Assertions.assertThrows(InvalidTypeException.class, () -> {
+		// Should throw exception
+		Assertions.assertThrows(ReportException.class, () -> {
 			frontend.report(observations);
 		});
 	}

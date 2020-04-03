@@ -17,7 +17,7 @@ class SiloBackend {
             observations.put(type, new ConcurrentHashMap<String, List<ObservationEntity>>());
         }
     }
-    
+
     // Private auxiliary methods
     private Map<String, List<ObservationEntity>> getTypeObservations(ObservationEntityType type) {
         return observations.get(type);
@@ -49,21 +49,23 @@ class SiloBackend {
     }
 
 
-    public void report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException {
-        if (!cameras.containsKey(camName))
-            throw new CameraNotFoundException("Camera with name " + camName + " not found");
+        public boolean report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
+            if (!cameras.containsKey(camName) || camName.isBlank() || camName.isEmpty())
+                throw new CameraNotFoundException("Camera with name " + camName + " not found");
 
-        for (ObservationEntity observation : obs){
-            observation.setDateTime(LocalDateTime.now());
+            for (ObservationEntity observation : obs){
+                checkId(observation.getType(),observation.getId());
+                observation.setDateTime(LocalDateTime.now());
 
-            List<ObservationEntity> oldObs = getObservations(observation.getType(),observation.getId());
-            //no observations with that id
-            if (oldObs == null){
-                oldObs = new ArrayList<>();
-                observations.get(observation.getType()).put(observation.getId(), oldObs);
+                List<ObservationEntity> oldObs = getObservations(observation.getType(),observation.getId());
+                //no observations with that id
+                if (oldObs == null){
+                    oldObs = new ArrayList<>();
+                    observations.get(observation.getType()).put(observation.getId(), oldObs);
+                }
+                oldObs.add(observation);
             }
-            oldObs.add(observation);
-        }
+            return true;
     }
 
 
@@ -71,7 +73,7 @@ class SiloBackend {
         if (id == null || id.isEmpty() || id.isBlank()) {
             throw new InvalidIdException("Id cannot be null, empty or blank.");
         }
-        
+
         switch(type) {
             case PERSON:
                 try {

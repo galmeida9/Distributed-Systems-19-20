@@ -15,7 +15,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	private SiloBackend backend = new SiloBackend();
 
 	/* Functionality operations */
-	
+
 	@Override
 	public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver){
 
@@ -52,17 +52,19 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		try{
 			List<ObservationEntity> obsEntity = new ArrayList<>();
 			List<Observation> obs = request.getObservationList();
-
 			for (Observation observation : obs){
 				obsEntity.add(convertToObsEntity(observation));
 			}
 
-			backend.report(request.getObservation(0).getCamName(), obsEntity);
-			ReportResponse response = ReportResponse.newBuilder().build();
-			responseObserver.onNext(response);
+			boolean res = backend.report(request.getObservation(0).getCamName(), obsEntity);
+
+			ReportResponse.Builder response = ReportResponse.newBuilder();
+			if (res) response.setStatus(Status.OK);
+		    else response.setStatus(Status.NOK);
+			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
-		} catch (CameraNotFoundException e){
-			throw new RuntimeException(e.getMessage());
+		} catch (CameraNotFoundException | InvalidIdException e){
+			responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
 		}
 	}
 
@@ -144,7 +146,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		responseObserver.onNext(response);
 		responseObserver.onCompleted();
 	}
-	
+
 	private Observation convertToObservation(ObservationEntity observation) {
 		return Observation.newBuilder()
 						.setType(convertToType(observation.getType()))

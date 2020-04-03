@@ -1,0 +1,3 @@
+ctrl_ping hello
+ctrl_clear
+exit

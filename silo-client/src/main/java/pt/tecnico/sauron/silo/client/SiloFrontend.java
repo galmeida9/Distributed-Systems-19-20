@@ -79,18 +79,22 @@ public class SiloFrontend {
 
     }
 
-    public ResponseStatus report(List<ObservationObject> observations) throws InvalidTypeException {
-        ReportRequest.Builder request = ReportRequest.newBuilder();
+    public ResponseStatus report(List<ObservationObject> observations) throws InvalidTypeException, ReportException {
+        try{
+            ReportRequest.Builder request = ReportRequest.newBuilder();
 
-        for (ObservationObject observation : observations){
-            request.addObservation(Observation.newBuilder()
-                    .setType(getTypeFromStr(observation.getType()))
-                    .setId(observation.getId())
-                    .setCamName(observation.getCamName()));
+            for (ObservationObject observation : observations){
+                request.addObservation(Observation.newBuilder()
+                        .setType(getTypeFromStr(observation.getType()))
+                        .setId(observation.getId())
+                        .setCamName(observation.getCamName()));
+            }
+
+            ReportResponse response = stub.report(request.build());
+            return getStatus(response.getStatus());
+        } catch (RuntimeException e){
+            throw new ReportException(e.getMessage());
         }
-        
-        ReportResponse response = stub.report(request.build());
-        return getStatus(response.getStatus());
     }
 
     public ObservationObject track(String type, String id) throws InvalidTypeException, NoObservationsFoundException {
