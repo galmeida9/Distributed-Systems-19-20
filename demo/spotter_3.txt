@@ -1,2 +1,1 @@
-spot car *LL
-exit
+spot car *24
