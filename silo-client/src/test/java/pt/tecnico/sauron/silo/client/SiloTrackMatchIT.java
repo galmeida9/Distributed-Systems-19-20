@@ -64,6 +64,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	}
 
 
+
     @Test
     public void successCompleteIdTest() {
 	    try {
@@ -147,6 +148,19 @@ public class SiloTrackMatchIT extends BaseIT{
             fail("Should not have thrown any exception.");
         }
     }
+
+
+	@Test
+    public void partIdWithoutAsteriskTest() {
+	    try {
+	        List<ObservationObject> obs = frontend.trackMatch(CAR, "20SD");
+	        Assertions.assertTrue(obs.isEmpty());
+
+        } catch (InvalidTypeException | NoObservationsFoundException e) {
+            fail("Should not have thrown any exception.");
+        }
+    }
+
 
     @Test
     public void successNoObservationTest() {
