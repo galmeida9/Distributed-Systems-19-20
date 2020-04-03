@@ -107,7 +107,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			}
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
-		} catch (InvalidIdException | NoObservationsException e) {
+		} catch (InvalidIdException e) {
 			throw new RuntimeException(e.getMessage());
 		}
 	}

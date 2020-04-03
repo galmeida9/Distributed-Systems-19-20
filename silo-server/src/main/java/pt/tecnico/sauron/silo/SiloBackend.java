@@ -117,10 +117,9 @@ class SiloBackend {
         return matches;
     }
 
-    public List<ObservationEntity> trace(ObservationEntityType type, String id) throws InvalidIdException, NoObservationsException {
+    public List<ObservationEntity> trace(ObservationEntityType type, String id) throws InvalidIdException {
         checkId(type, id);
         List<ObservationEntity> obs = new ArrayList<>(getObservations(type, id));
-        if (obs.isEmpty()) throw new NoObservationsException("No observations found for " + id);
         Collections.reverse(obs);
         return obs;
     }
