@@ -18,8 +18,9 @@ De seguida, na pasta `eye` corre-se o comando `target/appassembler/bin/eye local
 #### Utilização
 
 Para utilizar o cliente Eye, podemos enviar observações do tipo `person` com o comando `person,[id]`
- e observações do tipo `car` com o comando `car,[id]`. O cliente deve imprimir uma linha confirmando
- o registo local da observação.
+ e observações do tipo `car` com o comando `car,[id]`, em que `[id]` é o identificador que se deseja enviar. 
+ O cliente deve responder `Added a [type] with id [id].`, 
+ em que `type` corresponde ao tipo enviado e `[id]` corresponde ao identificador enviado..
  
 É possível também usar o comando `zzz,[tempo]`, em que `[tempo]` corresponde ao tempo que vai esperar 
 em milissegundos após o envio do comando. Este comando não imprime nada.
