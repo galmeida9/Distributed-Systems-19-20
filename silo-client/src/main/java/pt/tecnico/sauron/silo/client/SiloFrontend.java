@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import com.google.protobuf.Timestamp;
 import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
+import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 import pt.ulisboa.tecnico.sdis.zk.ZKRecord;
 
 public class SiloFrontend {
@@ -21,24 +22,58 @@ public class SiloFrontend {
     private ZKRecord record;
 
     public SiloFrontend(String zooHost, String zooPort, int instance) {
-
-        String path = "/grpc/sauron/silo/";
-
-        if (instance >= 0) path = path + Integer.toString(instance);
-        if (instance < 0) {
-            //TODO: If instance not given, choose randomly
-        }
+        String path = "/grpc/sauron/silo";
         zkNaming = new ZKNaming(zooHost, zooPort);
 
-        //TODO: Check for server not connected
-        //lookup
-        try {
-            record = zkNaming.lookup(path);
-        } catch (Exception e) {
-            //FIXME: Bad catching
-            System.out.println(e.getMessage());
+        if (instance >= 0) {
+            path = path + '/' + Integer.toString(instance);
+            try {
+                record = zkNaming.lookup(path);
+            } catch (ZKNamingException e) {
+                //FIXME:
+                e.printStackTrace();
+            }
+        }
+        else if (instance < 0) {
+            try {
+                Collection servers = zkNaming.listRecords(path);
+                if (servers.isEmpty()) {
+                    //FIXME:
+                    System.out.println("No server is on");
+                    return;
+                }
+                int num = (int) (Math.random()*servers.size());
+                record = (ZKRecord) servers.toArray()[num];
+            }
+            catch (ZKNamingException e) {
+                //FIXME:
+                e.printStackTrace();
+            }
         }
 
+        /*try {
+            if (instance < 0) {
+                Collection servers = zkNaming.listRecords(path);
+                if (servers.isEmpty()) {
+                    //FIXME:
+                    System.out.println("No server is on");
+                    return;
+                }
+                instance = (int) (Math.random()*servers.size());
+            }
+
+            path = path + '/' + Integer.toString(instance);
+            record = zkNaming.lookup(path);
+
+        } catch (ZKNamingException e) {
+            //FIXME:
+            e.printStackTrace();
+        }*/
+
+        //FIXME: Check for server not connected
+        if (record == null) return;
+
+        //lookup
         String target = record.getURI();
         debug("Target: " + target);
         
@@ -50,7 +85,7 @@ public class SiloFrontend {
     * Method to shutdown the channel when exiting.
     */
     public void exit(){
-        channel.shutdown();
+        if (channel != null) channel.shutdown();
     }
 
     /* 

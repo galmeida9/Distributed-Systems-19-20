@@ -53,6 +53,7 @@ public class EyeApp {
 		// Join server
 		frontend = new SiloFrontend(zooHost, zooPort, instance);
 		//TODO: Check for server not connected
+
 		try {
 			SiloFrontend.ResponseStatus res = frontend.camJoin(camName, lat, lon);
 			if (res.equals(SiloFrontend.ResponseStatus.OK)) {
@@ -65,7 +66,7 @@ public class EyeApp {
 			}
 		}
 		catch (Exception e) {
-			log(true, e.getMessage());
+			//log(true, e.getMessage());
 			frontend.exit();
 			return;
 		}
