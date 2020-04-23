@@ -8,9 +8,10 @@ import org.junit.jupiter.api.*;
 public class SiloCamInfoIT extends BaseIT {
 	
 	// static members
-    private static String HOST = "localhost";
-    private static String PORT = "8080";
-    private static SiloFrontend frontEnd = new SiloFrontend(HOST, PORT);
+    private static String HOST = testProps.getProperty("zoo.host");
+    private static String PORT = testProps.getProperty("zoo.port");
+    private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
+    private static SiloFrontend frontEnd = new SiloFrontend(HOST, PORT, INSTANCE);
     
     private static String DEFAULT_CAMERA = "camName";
     private static String NON_EXISTING_NAME = "fdsfsdfd";

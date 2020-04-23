@@ -1,6 +1,5 @@
 package pt.tecnico.sauron.silo;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,23 +48,23 @@ class SiloBackend {
     }
 
 
-        public boolean report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
-            if (!cameras.containsKey(camName) || camName.isBlank() || camName.isEmpty())
-                throw new CameraNotFoundException("Camera with name " + camName + " not found");
+    public boolean report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
+        if (!cameras.containsKey(camName) || camName.isBlank() || camName.isEmpty())
+            throw new CameraNotFoundException("Camera with name " + camName + " not found");
 
-            for (ObservationEntity observation : obs){
-                checkId(observation.getType(),observation.getId());
-                observation.setDateTime(LocalDateTime.now());
+        for (ObservationEntity observation : obs){
+            checkId(observation.getType(),observation.getId());
+            observation.setDateTime(LocalDateTime.now());
 
-                List<ObservationEntity> oldObs = getObservations(observation.getType(),observation.getId());
-                //no observations with that id
-                if (oldObs == null){
-                    oldObs = new ArrayList<>();
-                    observations.get(observation.getType()).put(observation.getId(), oldObs);
-                }
-                oldObs.add(observation);
+            List<ObservationEntity> oldObs = getObservations(observation.getType(),observation.getId());
+            //no observations with that id
+            if (oldObs == null){
+                oldObs = new ArrayList<>();
+                observations.get(observation.getType()).put(observation.getId(), oldObs);
             }
-            return true;
+            oldObs.add(observation);
+        }
+        return true;
     }
 
 

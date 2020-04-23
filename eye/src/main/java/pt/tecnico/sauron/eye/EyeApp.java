@@ -33,21 +33,26 @@ public class EyeApp {
 		}
 
 		// Check if there are enough arguments
-		if (args.length != 5) {
-			System.out.println("Too few arguments.\nUsage example: $ eye localhost 8080 Tagus 38.737613 -9.303164.\n");
+		if (args.length > 6 || args.length < 5) {
+			System.out.println("Wrong number of arguments.\nUsage example: $ eye localhost 2181 Tagus 38.737613 -9.303164.\n");
 			return;
 		}
-		else if (!isNumeric(args[1]) || !isDouble(args[3]) || !isDouble(args[4])) {
-			System.out.println("Wrong argument types.\nUsage example: $ eye localhost 8080 Tagus 38.737613 -9.303164.\n");
+		else if (!isDouble(args[3]) || !isDouble(args[4])) {
+			System.out.println("Wrong argument types.\nUsage example: $ eye localhost 2181 /grpc/sauron/silo/1 Tagus 38.737613 -9.303164.\n");
 			return;
 		}
 
 		camName = args[2];
 		double lat = Double.parseDouble(args[3]);
 		double lon = Double.parseDouble(args[4]);
+		String zooHost = args[0];
+		String zooPort = args[1];
+		int instance = -1;
+		if (args.length == 6) instance = Integer.parseInt(args[5]);
 
 		// Join server
-		frontend = new SiloFrontend(args[0], args[1]);
+		frontend = new SiloFrontend(zooHost, zooPort, instance);
+		//TODO: Check for server not connected
 		try {
 			SiloFrontend.ResponseStatus res = frontend.camJoin(camName, lat, lon);
 			if (res.equals(SiloFrontend.ResponseStatus.OK)) {

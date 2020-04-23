@@ -10,14 +10,36 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.google.protobuf.Timestamp;
+import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
+import pt.ulisboa.tecnico.sdis.zk.ZKRecord;
 
 public class SiloFrontend {
 
     private ManagedChannel channel;
     private SiloGrpc.SiloBlockingStub stub;
+    private ZKNaming zkNaming;
+    private ZKRecord record;
 
-    public SiloFrontend(String host, String port) {
-        String target = host + ":" + Integer.parseInt(port);
+    public SiloFrontend(String zooHost, String zooPort, int instance) {
+
+        String path = "/grpc/sauron/silo/";
+
+        if (instance >= 0) path = path + Integer.toString(instance);
+        if (instance < 0) {
+            //TODO: If instance not given, choose randomly
+        }
+        zkNaming = new ZKNaming(zooHost, zooPort);
+
+        //TODO: Check for server not connected
+        //lookup
+        try {
+            record = zkNaming.lookup(path);
+        } catch (Exception e) {
+            //FIXME: Bad catching
+            System.out.println(e.getMessage());
+        }
+
+        String target = record.getURI();
         debug("Target: " + target);
         
         channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();

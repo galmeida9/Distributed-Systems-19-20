@@ -13,9 +13,10 @@ import java.util.List;
 public class SiloTrackIT extends BaseIT{
 
 	// static members
-    private static String HOST = "localhost";
-    private static String PORT = "8080";
-    private static SiloFrontend frontend = new SiloFrontend(HOST, PORT);
+	private static String HOST = testProps.getProperty("zoo.host");
+	private static String PORT = testProps.getProperty("zoo.port");
+	private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
+	private static SiloFrontend frontend = new SiloFrontend(HOST, PORT, INSTANCE);
 
     private static String PERSON = "person";
 	private static String PERSON_ID_VALID = "1";

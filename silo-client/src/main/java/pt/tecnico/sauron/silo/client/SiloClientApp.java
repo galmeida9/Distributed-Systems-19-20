@@ -12,10 +12,10 @@ public class SiloClientApp {
 			System.out.printf("arg[%d] = %s%n", i, args[i]);
 		}
 
-		SiloFrontend silo = new SiloFrontend("localhost", "8080");
+		//SiloFrontend silo = new SiloFrontend("localhost", "8080");
 
 		// ctrl_ping test
-		System.out.println(silo.ctrlPing("friend"));
+		//System.out.println(silo.ctrlPing("friend"));
 	}
 
 

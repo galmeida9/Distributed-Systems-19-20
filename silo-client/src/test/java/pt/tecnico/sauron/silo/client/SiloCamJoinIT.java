@@ -9,9 +9,10 @@ import pt.tecnico.sauron.silo.client.SiloFrontend.ResponseStatus;
 public class SiloCamJoinIT extends BaseIT {
 	
 	// static members
-    private static String HOST = "localhost";
-    private static String PORT = "8080";
-    private static SiloFrontend frontEnd = new SiloFrontend(HOST, PORT);
+    private static String HOST = testProps.getProperty("zoo.host");
+    private static String PORT = testProps.getProperty("zoo.port");
+    private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
+    private static SiloFrontend frontEnd = new SiloFrontend(HOST, PORT, INSTANCE);
     
     private static String DEFAULT_CAMERA = "camName";
     private static double DEFAULT_LAT = 1.232;

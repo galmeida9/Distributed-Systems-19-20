@@ -17,8 +17,11 @@
 		<!-- see parent POM for more properties -->
 
 		<mainclass>pt.tecnico.sauron.eye.EyeApp</mainclass>
-		<server.host>localhost</server.host>
-		<server.port>8080</server.port>
+		<zoo.host>localhost</zoo.host>
+		<zoo.port>2181</zoo.port>
+
+		<!-- instance number -->
+		<instance>1</instance>
 	</properties>
 
 	<dependencies>
@@ -68,7 +71,12 @@
 				<configuration>
 					<mainClass>${mainclass}</mainClass>
 					<arguments>
-
+						<argument>${zoo.host}</argument>
+						<argument>${zoo.port}</argument>
+						<argument>Tagus</argument>
+						<argument>1</argument>
+						<argument>2</argument>
+						<argument>${instance}</argument>
 					</arguments>
 				</configuration>
 			</plugin>

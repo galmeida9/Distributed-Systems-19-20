@@ -11,7 +11,6 @@ import java.util.*;
 
 public class SpotterApp {
 
-    static boolean DEBUG = true;
     private static SiloFrontend silo;
 	
 	public static void main(String[] args) {
@@ -23,12 +22,17 @@ public class SpotterApp {
 			System.out.printf("arg[%d] = %s%n", i, args[i]);
 		}
 
-        if (args.length != 2) {
+        if (args.length < 2 || args.length > 3) {
             System.out.println("Wrong number of arguments");
             System.out.printf("Usage: java %s host port%n", SpotterApp.class.getName());
             return;
         }
-        silo = new SiloFrontend(args[0], args[1]);
+
+        //TODO: Add from args
+        int instance = -1;
+        if (args.length == 3) instance = Integer.parseInt(args[2]);
+        silo = new SiloFrontend(args[0], args[1], instance);
+        //TODO: Check for server not connected
 
         Scanner scanner = new Scanner(System.in);
 
@@ -81,7 +85,8 @@ public class SpotterApp {
 
                 case "exit":
                     scanner.close();
-                    break;
+                    silo.exit();
+                    return ;
 
                 default:
                     System.out.println("Command does not exist");

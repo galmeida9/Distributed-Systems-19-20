@@ -11,6 +11,11 @@ import static org.junit.Assert.*;
 public class SiloReportIT extends BaseIT {
 
 	// static members
+	private static String HOST = testProps.getProperty("zoo.host");
+	private static String PORT = testProps.getProperty("zoo.port");
+	private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
+	private static SiloFrontend frontend = new SiloFrontend(HOST, PORT, INSTANCE);
+
 	private static String PERSON = "person";
 	private static String PERSON_ID_VALID = "1";
 	private static String PERSON_ID_INVALID = "1111a";
@@ -21,13 +26,11 @@ public class SiloReportIT extends BaseIT {
 	private static String CAM_NAME_EXISTENT = "Tagus";
 	private static String CAM_NAME_NON_EXISTENT = "Alameda";
 
-	private static SiloFrontend frontend;
 	private static List<ObservationObject> observations;
 
 	// one-time initialization and clean-up
 	@BeforeAll
 	public static void oneTimeSetUp(){
-		frontend = new SiloFrontend(testProps.getProperty("server.host"), testProps.getProperty("server.port"));
 		observations = new ArrayList<>();
 	}
 
