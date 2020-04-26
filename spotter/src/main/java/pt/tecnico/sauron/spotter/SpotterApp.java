@@ -1,6 +1,7 @@
 package pt.tecnico.sauron.spotter;
 
 import pt.tecnico.sauron.silo.client.CameraNotFoundException;
+import pt.tecnico.sauron.silo.client.CannotClearServerException;
 import pt.tecnico.sauron.silo.client.InvalidTypeException;
 import pt.tecnico.sauron.silo.client.NoObservationsFoundException;
 import pt.tecnico.sauron.silo.client.ObservationObject;
@@ -23,8 +24,7 @@ public class SpotterApp {
 		}
 
         if (args.length < 2 || args.length > 3) {
-            System.out.println("Wrong number of arguments");
-            System.out.printf("Usage: java %s host port%n", SpotterApp.class.getName());
+            System.out.printf("Wrong number of arguments%nUsage: java %s host port%n", SpotterApp.class.getName());
             return;
         }
 
@@ -74,13 +74,16 @@ public class SpotterApp {
                     break;
 
                 case "ctrl_clear":
-                    SiloFrontend.ResponseStatus res = silo.ctrlClear();
-                    System.out.println("CtrlClear was " + res.toString());
+                    try {
+                        silo.ctrlClear();
+                        System.out.println("CtrlClear was OK");
+                    } catch (CannotClearServerException e) {
+                        System.out.println("CtrlClear was NOK: " + e.getMessage());
+                    }
                     break;
-
                 case "ctrl_init":
-                    SiloFrontend.ResponseStatus status = silo.ctrlInit();
-                    System.out.println("CtrlInit was " + status.toString());
+                    silo.ctrlInit();
+                    System.out.println("CtrlInit was OK");
                     break;
 
                 case "exit":
@@ -177,7 +180,8 @@ public class SpotterApp {
 
 
     public static void help(){
-	    System.out.print("Spot command - shows latest observation of a person or object-> spot <type> <id/partId>  Comando spot\n" +
+	    System.out.print(
+                "Spot command - shows latest observation of a person or object-> spot <type> <id/partId>  Command spot\n" +
                 "Trail command - shows trail of a person or object -> trail <type> <id>\n" +
                 "Ping command - indicates state of server -> ctrl_ping <message>\n" +
                 "Clear command - cleans state of server -> ctrl_clear\n" +

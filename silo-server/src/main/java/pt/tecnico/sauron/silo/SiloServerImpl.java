@@ -8,6 +8,7 @@ import java.util.List;
 import com.google.protobuf.Timestamp;
 
 import io.grpc.stub.StreamObserver;
+import pt.tecnico.sauron.silo.domain.*;
 import pt.tecnico.sauron.silo.grpc.*;
 
 public class SiloServerImpl extends SiloGrpc.SiloImplBase {
@@ -18,33 +19,32 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver){
+		try {
+			backend.camJoin(request.getCamName(), request.getCoordinates().getLat(), request.getCoordinates().getLong());
 
-		boolean res = backend.camJoin(request.getCamName(), request.getCoordinates().getLat(), request.getCoordinates().getLong());
-
-		CamJoinResponse.Builder response = CamJoinResponse.newBuilder();
-		if (res) response.setStatus(Status.OK);
-		else response.setStatus(Status.NOK);
-
-		responseObserver.onNext(response.build());
-		responseObserver.onCompleted();
+			CamJoinResponse response = CamJoinResponse.newBuilder().build();
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
+		} catch (InvalidCameraArguments e) {
+			responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+		}
 	}
 
 	@Override
 	public void camInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
-		List<Double> listCoords;
 		try {
-			listCoords = backend.camInfo(request.getCamName());
-		}
-		catch (CameraNotFoundException e) {
-			throw new RuntimeException(e.getMessage());
-		}
-		Coordinates coords = Coordinates.newBuilder()
+			List<Double> listCoords = backend.camInfo(request.getCamName());
+			Coordinates coords = Coordinates.newBuilder()
 				.setLat(listCoords.get(0))
 				.setLong(listCoords.get(1))
 				.build();
-		CamInfoResponse response = CamInfoResponse.newBuilder().setCoordinates(coords).build();
-		responseObserver.onNext(response);
-		responseObserver.onCompleted();
+			CamInfoResponse response = CamInfoResponse.newBuilder().setCoordinates(coords).build();
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
+		}
+		catch (CameraNotFoundException e) {
+			responseObserver.onError(io.grpc.Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
+		}
 	}
 
 	@Override
@@ -56,15 +56,15 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 				obsEntity.add(convertToObsEntity(observation));
 			}
 
-			boolean res = backend.report(request.getObservation(0).getCamName(), obsEntity);
+			backend.report(request.getObservation(0).getCamName(), obsEntity);
 
-			ReportResponse.Builder response = ReportResponse.newBuilder();
-			if (res) response.setStatus(Status.OK);
-		    else response.setStatus(Status.NOK);
-			responseObserver.onNext(response.build());
+			ReportResponse response = ReportResponse.newBuilder().build();
+			responseObserver.onNext(response);
 			responseObserver.onCompleted();
-		} catch (CameraNotFoundException | InvalidIdException e){
+		} catch (InvalidIdException | InvalidTypeException e){
 			responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+		} catch (CameraNotFoundException e) {
+			responseObserver.onError(io.grpc.Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
 		}
 	}
 
@@ -76,8 +76,10 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			TrackResponse response = TrackResponse.newBuilder().setObservation(obsResponse).build();
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
-		} catch (InvalidIdException | NoObservationsException e) {
-			throw new RuntimeException(e.getMessage());
+		} catch (InvalidIdException | InvalidTypeException e) {
+			responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+		} catch (NoObservationsException e) {
+			responseObserver.onError(io.grpc.Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
 		}
 	}
 
@@ -93,8 +95,10 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
-		} catch (InvalidIdException | NoObservationsException e) {
-			throw new RuntimeException(e.getMessage());
+		} catch (InvalidIdException | InvalidTypeException e) {
+			responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
+		} catch (NoObservationsException e) {
+			responseObserver.onError(io.grpc.Status.NOT_FOUND.withDescription(e.getMessage()).asRuntimeException());
 		}
 	}
 
@@ -109,8 +113,8 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			}
 			responseObserver.onNext(response.build());
 			responseObserver.onCompleted();
-		} catch (InvalidIdException e) {
-			throw new RuntimeException(e.getMessage());
+		} catch (InvalidIdException | InvalidTypeException e) {
+			responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(e.getMessage()).asRuntimeException());
 		}
 	}
 
@@ -129,14 +133,15 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void ctrlClear(CtrlClearRequest request, StreamObserver<CtrlClearResponse> responseObserver) {
-		boolean res = backend.ctrlClear();
+		try {
+			backend.ctrlClear();
 
-		CtrlClearResponse.Builder response = CtrlClearResponse.newBuilder();
-		if (res) response.setStatus(Status.OK);
-		else response.setStatus(Status.NOK);
-
-		responseObserver.onNext(response.build());
-		responseObserver.onCompleted();
+			CtrlClearResponse response = CtrlClearResponse.newBuilder().build();
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
+		} catch (CannotClearServerException e) {
+			responseObserver.onError(io.grpc.Status.UNKNOWN.withDescription(e.getMessage()).asRuntimeException());
+		}
 	}
 
 	@Override
@@ -147,7 +152,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		responseObserver.onCompleted();
 	}
 
-	private Observation convertToObservation(ObservationEntity observation) {
+	private Observation convertToObservation(ObservationEntity observation) throws InvalidTypeException {
 		return Observation.newBuilder()
 						.setType(convertToType(observation.getType()))
 						.setId(observation.getId())
@@ -157,29 +162,29 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	}
 
 
-	private TypeObject convertToType(ObservationEntity.ObservationEntityType type) throws RuntimeException {
+	private TypeObject convertToType(ObservationEntity.ObservationEntityType type) throws InvalidTypeException {
 		switch (type) {
 			case PERSON:
 				return TypeObject.PERSON;
 			case CAR:
 				return TypeObject.CAR;
 			default:
-				throw new RuntimeException("Unknown type.");
+				throw new InvalidTypeException("Unknown type: " + type.toString());
 		}
 	}
 
-	private ObservationEntity.ObservationEntityType convertToObsEntityType(TypeObject type) throws RuntimeException {
+	private ObservationEntity.ObservationEntityType convertToObsEntityType(TypeObject type) throws InvalidTypeException {
 		switch (type) {
 			case PERSON:
 				return ObservationEntity.ObservationEntityType.PERSON;
 			case CAR:
 				return ObservationEntity.ObservationEntityType.CAR;
 			default:
-				throw new RuntimeException("Unknown type.");
+				throw new InvalidTypeException("Unknown type: " + type.toString());
 		}
 	}
 
-		private ObservationEntity convertToObsEntity(Observation obs){
+		private ObservationEntity convertToObsEntity(Observation obs) throws InvalidTypeException {
 		return new ObservationEntity(convertToObsEntityType(obs.getType()),
 				obs.getId(),
 				obs.getCamName());

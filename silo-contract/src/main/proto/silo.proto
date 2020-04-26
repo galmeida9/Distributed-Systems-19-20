@@ -6,13 +6,6 @@ package pt.tecnico.sauron.silo.grpc;
 option java_multiple_files = true;
 import "google/protobuf/timestamp.proto";
 
-// status responses
-enum Status {
-    NOK = 0;
-    OK = 1;
-    ID_DUPLICATED = 2;
-}
-
 // type of object
 enum TypeObject {
     PERSON = 0;
@@ -40,7 +33,7 @@ message CamJoinRequest {
 }
 
 message CamJoinResponse {
-    Status status = 1;
+    // No arguments
 }
 
 // cam_info
@@ -58,7 +51,7 @@ message ReportRequest {
 }
 
 message ReportResponse {
-    Status status = 1;
+    // No arguments
 }
 
 // track
@@ -106,7 +99,7 @@ message CtrlClearRequest {
 }
 
 message CtrlClearResponse {
-    Status status = 1;
+    // No arguments
 }
 
 // ctrl_init
@@ -115,7 +108,7 @@ message CtrlInitRequest {
 }
 
 message CtrlInitResponse {
-    Status status = 1;
+    // No arguments
 }
 
 // service

@@ -1,7 +1,6 @@
 package pt.tecnico.sauron.silo.client;
 
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +25,8 @@ public class SiloReportIT extends BaseIT {
 	private static String CAM_NAME_EXISTENT = "Tagus";
 	private static String CAM_NAME_NON_EXISTENT = "Alameda";
 
+	private static int NUM_OF_TESTS = 20;
+
 	private static List<ObservationObject> observations;
 
 	// one-time initialization and clean-up
@@ -42,26 +43,93 @@ public class SiloReportIT extends BaseIT {
 	// initialization and clean-up for each test
 	@BeforeEach
 	public void setUp() {
-		frontend.camJoin(CAM_NAME_EXISTENT, 1, 1);
+		try {
+			frontend.camJoin(CAM_NAME_EXISTENT, 1, 1);
+		} catch (InvalidCameraArgumentsException e) {
+            fail("Should not have thrown any exception.");
+        }
 	}
 
 	@AfterEach
 	public void tearDown() {
-		frontend.ctrlClear();
+		try {
+            frontend.ctrlClear();
+        } catch (CannotClearServerException e) {
+            fail("Should not have thrown any exception.");
+        }
 		observations.clear();
 	}
 
 	// tests
 
 	@Test
-	public void successTest() {
+	public void successPersonTest() {
 		// Given a valid observation
 		observations.add(new ObservationObject(PERSON, PERSON_ID_VALID, CAM_NAME_EXISTENT));
 
 		try {
-			SiloFrontend.ResponseStatus res;
-			res = frontend.report( observations);
-			assertEquals(SiloFrontend.ResponseStatus.OK, res);
+			frontend.report( observations);
+		}
+		catch (InvalidTypeException | ReportException e){
+			System.out.println(e.getMessage());
+			fail("Should not have thrown any exception");
+		}
+	}
+
+	@Test
+	public void successCarTest() {
+		// Given a valid observation
+		observations.add(new ObservationObject(CAR, CAR_ID_VALID, CAM_NAME_EXISTENT));
+
+		try {
+			frontend.report( observations);
+		}
+		catch (InvalidTypeException | ReportException e){
+			System.out.println(e.getMessage());
+			fail("Should not have thrown any exception");
+		}
+	}
+
+	@Test
+	public void successMultiplePeopleTest() {
+		// Given a valid observation
+		for (int i = 0; i < NUM_OF_TESTS; i ++)
+			observations.add(new ObservationObject(PERSON, PERSON_ID_VALID + Integer.toString(i), CAM_NAME_EXISTENT));
+
+		try {
+			frontend.report( observations);
+		}
+		catch (InvalidTypeException | ReportException e){
+			System.out.println(e.getMessage());
+			fail("Should not have thrown any exception");
+		}
+	}
+
+	@Test
+	public void successMultipleCarTest() {
+		// Given a valid observation
+		for (int i = 0; i < NUM_OF_TESTS; i ++)
+			observations.add(new ObservationObject(CAR, CAR_ID_VALID, CAM_NAME_EXISTENT));
+
+		try {
+			frontend.report( observations);
+		}
+		catch (InvalidTypeException | ReportException e){
+			System.out.println(e.getMessage());
+			fail("Should not have thrown any exception");
+		}
+	}
+
+	@Test
+	public void successMultipleTest() {
+		// Given a valid observation
+		for (int i = 0; i < NUM_OF_TESTS; i ++) {
+			observations.add(new ObservationObject(PERSON, PERSON_ID_VALID + Integer.toString(i), CAM_NAME_EXISTENT));
+			observations.add(new ObservationObject(CAR, CAR_ID_VALID, CAM_NAME_EXISTENT));
+		}
+
+		try {
+			frontend.report( observations);
 		}
 		catch (InvalidTypeException | ReportException e){
 			System.out.println(e.getMessage());

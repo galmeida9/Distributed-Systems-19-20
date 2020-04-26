@@ -51,26 +51,6 @@ public class SiloFrontend {
             }
         }
 
-        /*try {
-            if (instance < 0) {
-                Collection servers = zkNaming.listRecords(path);
-                if (servers.isEmpty()) {
-                    //FIXME:
-                    System.out.println("No server is on");
-                    return;
-                }
-                instance = (int) (Math.random()*servers.size());
-            }
-
-            path = path + '/' + Integer.toString(instance);
-            record = zkNaming.lookup(path);
-
-        } catch (ZKNamingException e) {
-            //FIXME:
-            e.printStackTrace();
-        }*/
-
-        //FIXME: Check for server not connected
         if (record == null) return;
 
         //lookup
@@ -86,16 +66,6 @@ public class SiloFrontend {
     */
     public void exit(){
         if (channel != null) channel.shutdown();
-    }
-
-    /* 
-    *   Contract related classes
-    */
-
-    public enum ResponseStatus {
-        OK,
-        ID_DUPLICATED,
-        NOK
     }
 
     // Get a list of the valid types for the observations
@@ -119,16 +89,21 @@ public class SiloFrontend {
     /*
     *   Public methods - server related
     */
-    public ResponseStatus camJoin(String camName, double lat, double lon){
-        Coordinates coords = Coordinates.newBuilder().setLat(lat).setLong(lon).build();
-        CamJoinResponse response = stub.camJoin(CamJoinRequest.newBuilder().setCamName(camName).setCoordinates(coords).build());
-        return getStatus(response.getStatus());
+    public void camJoin(String camName, double lat, double lon) throws InvalidCameraArgumentsException {
+        try {
+            Coordinates coords = Coordinates.newBuilder().setLat(lat).setLong(lon).build();
+            stub.camJoin(CamJoinRequest.newBuilder().setCamName(camName).setCoordinates(coords).build());
+        } catch (RuntimeException e) {
+            throw new InvalidCameraArgumentsException(e.getMessage());
+        }
     }
 
     public String camInfo(String camName) throws CameraNotFoundException {
         try {
             CamInfoResponse response = stub.camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
-            return String.valueOf(response.getCoordinates().getLat()) + "," + String.valueOf(response.getCoordinates().getLong());
+            double lat = response.getCoordinates().getLat();
+            double lon = response.getCoordinates().getLong();
+            return String.valueOf(lat + "," + lon);
         }
         catch (RuntimeException e) {
             throw new CameraNotFoundException(e.getMessage());
@@ -136,7 +111,7 @@ public class SiloFrontend {
 
     }
 
-    public ResponseStatus report(List<ObservationObject> observations) throws InvalidTypeException, ReportException {
+    public void report(List<ObservationObject> observations) throws InvalidTypeException, ReportException {
         try{
             ReportRequest.Builder request = ReportRequest.newBuilder();
 
@@ -147,8 +122,7 @@ public class SiloFrontend {
                         .setCamName(observation.getCamName()));
             }
 
-            ReportResponse response = stub.report(request.build());
-            return getStatus(response.getStatus());
+            stub.report(request.build());
         } catch (RuntimeException e){
             throw new ReportException(e.getMessage());
         }
@@ -205,14 +179,16 @@ public class SiloFrontend {
         return response.getOutput();
     }
 
-    public ResponseStatus ctrlClear(){
-        CtrlClearResponse response = CtrlClearResponse.newBuilder().build();
-        return getStatus(response.getStatus());
+    public void ctrlClear() throws CannotClearServerException {
+        try {
+            CtrlClearResponse.newBuilder().build();
+        } catch (RuntimeException e) {
+            throw new CannotClearServerException("Could clear the server.");
+        }
     }
 
-    public ResponseStatus ctrlInit(){
-        CtrlClearResponse response = CtrlClearResponse.newBuilder().build();
-        return getStatus(response.getStatus());
+    public void ctrlInit(){
+        CtrlClearResponse.newBuilder().build();
     }
 
     /*
@@ -250,18 +226,6 @@ public class SiloFrontend {
     private String getStrFromType(TypeObject type) {
         if (type == TypeObject.PERSON) return "person";
         return "car";
-    }
-
-    private ResponseStatus getStatus(Status status){
-        switch (status){
-            case OK:
-                return ResponseStatus.OK;
-            case ID_DUPLICATED:
-                return ResponseStatus.ID_DUPLICATED;
-            case NOK:
-            default:
-                return ResponseStatus.NOK;
-        }
     }
 }
 

@@ -1,7 +1,5 @@
 package pt.tecnico.sauron.silo.client;
 
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.Assert.*;
 
 import org.junit.Assert;
@@ -11,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SiloTrackMatchIT extends BaseIT{
-
     // static members
 	private static String HOST = testProps.getProperty("zoo.host");
 	private static String PORT = testProps.getProperty("zoo.port");
@@ -24,15 +21,13 @@ public class SiloTrackMatchIT extends BaseIT{
 	private static String PERSON_PART_ID = "1*";
 	private static String CAR = "car";
 	private static String CAR_ID_VALID = "20SD21";
-	private static String CAR_PART_BEGGINING = "20*";
+	private static String CAR_PART_BEGINNING = "20*";
 	private static String CAR_PART_MIDDLE = "2*1";
 	private static String CAR_PART_END = "*21";
 	private static String CAR_ID_INVALID = "202122";
 	private static String CAM = "camName";
     private static double CAM_LAT = 1.232;
     private static double CAM_LONG = -5.343;
-
-
 
     	// one-time initialization and clean-up
 	@BeforeAll
@@ -41,14 +36,21 @@ public class SiloTrackMatchIT extends BaseIT{
 		obsList.add(new ObservationObject(CAR, CAR_ID_VALID,CAM));
 		obsList.add(new ObservationObject(CAR, "20SZ21",CAM));
 
-
-		frontend.camJoin(CAM , CAM_LAT, CAM_LONG);
+		try {
+			frontend.camJoin(CAM , CAM_LAT, CAM_LONG);
+        } catch (InvalidCameraArgumentsException e) {
+            fail("Should not have thrown any exception.");
+        }
 		frontend.report(obsList);
     }
 
 	@AfterAll
 	public static void oneTimeTearDown() {
-        frontend.ctrlClear();
+        try{
+            frontend.ctrlClear();
+        } catch (CannotClearServerException e) {
+            fail("Should not have thrown any exception.");
+        }
 		frontend.exit();
 	}
 
@@ -64,8 +66,6 @@ public class SiloTrackMatchIT extends BaseIT{
 
 	}
 
-
-
     @Test
     public void successCompleteIdTest() {
 	    try {
@@ -79,11 +79,10 @@ public class SiloTrackMatchIT extends BaseIT{
         }
     }
 
-
     @Test
     public void successBeginningPartIdTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_PART_BEGGINING);
+	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_PART_BEGINNING);
 	        Assert.assertEquals(CAR, obs.get(0).getType());
 	        Assert.assertEquals(CAR_ID_VALID, obs.get(0).getId());
 	        Assert.assertEquals(CAM, obs.get(0).getCamName());
@@ -132,7 +131,6 @@ public class SiloTrackMatchIT extends BaseIT{
         }
     }
 
-
     @Test
     public void successMultipleAsteriskIdTest() {
 	    try {
@@ -150,7 +148,6 @@ public class SiloTrackMatchIT extends BaseIT{
         }
     }
 
-
 	@Test
     public void partIdWithoutAsteriskTest() {
 	    try {
@@ -161,7 +158,6 @@ public class SiloTrackMatchIT extends BaseIT{
             fail("Should not have thrown any exception.");
         }
     }
-
 
     @Test
     public void successNoObservationTest() {
@@ -199,6 +195,5 @@ public class SiloTrackMatchIT extends BaseIT{
 			frontend.trackMatch("", PERSON_ID_VALID);
 		});
 	}
-
 
 }

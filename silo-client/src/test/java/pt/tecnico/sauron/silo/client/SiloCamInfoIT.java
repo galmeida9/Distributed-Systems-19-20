@@ -17,19 +17,27 @@ public class SiloCamInfoIT extends BaseIT {
     private static String NON_EXISTING_NAME = "fdsfsdfd";
     private static double DEFAULT_LAT = 1.232;
     private static double DEFAULT_LONG = -5.343;
-    private static String COORDENATES = "1.232,-5.343";
+    private static String COORDINATES = "1.232,-5.343";
 	
 	
 	// one-time initialization and clean-up
 	@BeforeAll
 	public static void oneTimeSetUp(){
-        // given a Camera for all the tests
-        frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
+        try {
+            // given a Camera for all the tests
+            frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
+        } catch (InvalidCameraArgumentsException e) {
+            fail("Should not have thrown any exception.");
+        }
     }
 
 	@AfterAll
 	public static void oneTimeTearDown() {
-        frontEnd.ctrlClear();
+        try {
+            frontEnd.ctrlClear();
+        } catch (CannotClearServerException e) {
+            fail("Should not have thrown any exception.");
+        }
 		frontEnd.exit();
 	}
 	
@@ -50,9 +58,9 @@ public class SiloCamInfoIT extends BaseIT {
 	@Test
 	public void correctArgumentstest() {
         try{
-            // Should return the coordenates for the camera
-            assertEquals(COORDENATES, frontEnd.camInfo(DEFAULT_CAMERA), 
-                    "Should return the coordenates of the camera.");
+            // Should return the coordinates for the camera
+            assertEquals(COORDINATES, frontEnd.camInfo(DEFAULT_CAMERA), 
+                    "Should return the coordinates of the camera.");
         } catch (CameraNotFoundException e) {
             fail("Should not have thrown any exception.");
         }

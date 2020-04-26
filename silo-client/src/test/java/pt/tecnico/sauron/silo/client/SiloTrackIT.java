@@ -1,7 +1,5 @@
 package pt.tecnico.sauron.silo.client;
 
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.Assert.*;
 
 import org.junit.Assert;
@@ -41,14 +39,22 @@ public class SiloTrackIT extends BaseIT{
 		obsList.add(new ObservationObject(CAR, CAR_ID_VALID,CAM_1));
 		obsList.add(new ObservationObject(PERSON, PERSON_ID_VALID,CAM_2));
 
-		frontend.camJoin(CAM_1 ,CAM_1_LAT_, CAM_1_LONG);
-		frontend.camJoin(CAM_2, CAM_2_LAT_, CAM_2_LONG);
+		try {
+			frontend.camJoin(CAM_1 ,CAM_1_LAT_, CAM_1_LONG);
+			frontend.camJoin(CAM_2, CAM_2_LAT_, CAM_2_LONG);
+        } catch (InvalidCameraArgumentsException e) {
+            fail("Should not have thrown any exception.");
+        }
 		frontend.report(obsList);
     }
 
 	@AfterAll
 	public static void oneTimeTearDown() {
-        frontend.ctrlClear();
+        try{
+            frontend.ctrlClear();
+        } catch (CannotClearServerException e) {
+            fail("Should not have thrown any exception.");
+        }
 		frontend.exit();
 	}
 
@@ -64,11 +70,8 @@ public class SiloTrackIT extends BaseIT{
 
 	}
 
-
-
-
     @Test
-    public void successTest() {
+    public void successPersonTest() {
 	    try {
 	        ObservationObject obs = frontend.track(PERSON, PERSON_ID_VALID);
 	        Assert.assertEquals(PERSON, obs.getType());
@@ -78,7 +81,20 @@ public class SiloTrackIT extends BaseIT{
         } catch (InvalidTypeException | NoObservationsFoundException e) {
             fail("Should not have thrown any exception.");
         }
-    }
+	}
+	
+	@Test
+    public void successCarTest() {
+	    try {
+	        ObservationObject obs = frontend.track(CAR, CAR_ID_VALID);
+	        Assert.assertEquals(CAR, obs.getType());
+	        Assert.assertEquals(CAR_ID_VALID, obs.getId());
+	        Assert.assertEquals(CAM_1, obs.getCamName());
+
+        } catch (InvalidTypeException | NoObservationsFoundException e) {
+            fail("Should not have thrown any exception.");
+        }
+	}
 
 	@Test
 	public void tooManyOfSameGroupCarIdTest(){

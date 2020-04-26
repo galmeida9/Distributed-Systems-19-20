@@ -36,6 +36,7 @@
 
 	<modules>
 		<module>silo-contract</module>
+		<module>silo-domain</module>
 		<module>silo-server</module>
 		<module>silo-client</module>
 		<module>eye</module>

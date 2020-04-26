@@ -39,14 +39,22 @@ public class SiloTraceIT extends BaseIT {
 		obsList.add(new ObservationObject(PERSON, PERSON_ID_VALID,CAM_2));
 		obsList.add(new ObservationObject(CAR, CAR_ID_VALID,CAM_1));
 
-		frontend.camJoin(CAM_1 ,CAM_1_LAT_, CAM_1_LONG);
-		frontend.camJoin(CAM_2, CAM_2_LAT_, CAM_2_LONG);
+		try {
+            frontend.camJoin(CAM_1 ,CAM_1_LAT_, CAM_1_LONG);
+			frontend.camJoin(CAM_2, CAM_2_LAT_, CAM_2_LONG);
+        } catch (InvalidCameraArgumentsException e) {
+            fail("Should not have thrown any exception.");
+        }
 		frontend.report(obsList);
     }
 
 	@AfterAll
 	public static void oneTimeTearDown() {
-        frontend.ctrlClear();
+        try{
+            frontend.ctrlClear();
+        } catch (CannotClearServerException e) {
+            fail("Should not have thrown any exception.");
+        }
 		frontend.exit();
 	}
 

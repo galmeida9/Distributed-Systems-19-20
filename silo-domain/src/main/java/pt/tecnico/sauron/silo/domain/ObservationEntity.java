@@ -1,14 +1,14 @@
-package pt.tecnico.sauron.silo;
+package pt.tecnico.sauron.silo.domain;
 
 import java.time.LocalDateTime;
 
-class ObservationEntity {
+public class ObservationEntity {
     private ObservationEntityType type;
     private String id;
     private LocalDateTime dateTime;
     private String camName;
 
-    enum ObservationEntityType {
+    public enum ObservationEntityType {
         PERSON,
         CAR
     }

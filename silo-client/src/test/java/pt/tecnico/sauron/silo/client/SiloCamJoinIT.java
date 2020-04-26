@@ -1,10 +1,8 @@
 package pt.tecnico.sauron.silo.client;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.*;
 
 import org.junit.jupiter.api.*;
-
-import pt.tecnico.sauron.silo.client.SiloFrontend.ResponseStatus;
 
 public class SiloCamJoinIT extends BaseIT {
 	
@@ -39,65 +37,100 @@ public class SiloCamJoinIT extends BaseIT {
 	
 	@AfterEach
 	public void tearDown() {
-		frontEnd.ctrlClear();
+		try{
+            frontEnd.ctrlClear();
+        } catch (CannotClearServerException e) {
+            fail("Should not have thrown any exception.");
+        }
 	}
 		
 	// tests 
 	
 	@Test
-	public void correctArgumentstest() {
-        // Should return OK status
-        assertEquals(ResponseStatus.OK, frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG), 
-                    "adding new camera should return OK");
+	public void correctArgumentsTest() {
+        // Should not throw exception
+        try {
+            frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
+        } catch (InvalidCameraArgumentsException e) {
+            fail("Should not have thrown any exception.");
+        }
     }
 
     @Test
     public void duplicateCameraTest() {
-        // Given a camera
-        assertEquals(ResponseStatus.OK, frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG), 
-                    "adding new camera should return OK");
+        // Should not throw exception
+        try {
+            // Given a camera
+            frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
         
-        // Should return OK status
-        assertEquals(ResponseStatus.OK, frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG), 
-                    "adding duplicate camera should return OK");
+            frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
+        } catch (InvalidCameraArgumentsException e) {
+            fail("Should not have thrown any exception.");
+        }
     }
     
     @Test
-    public void duplicateCameraWrongCoordenatesTest() {
-        // Given a camera
-        assertEquals(ResponseStatus.OK, frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG), 
-                    "adding new camera should return OK");
+    public void duplicateCameraWrongCoordinatesTest() {
+        // Should not throw exception
+        try {
+            // Given a camera
+            frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
+        
+            frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
+        } catch (InvalidCameraArgumentsException e) {
+            fail("Should not have thrown any exception.");
+        }
 
-        // Should return NOK status
-        assertEquals(ResponseStatus.NOK, frontEnd.camJoin(DEFAULT_CAMERA, 2.2222, -4.4343), 
-                    "Adding duplicate camera with different location should return NOK");
+        // Should throw exception
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin(DEFAULT_CAMERA, 2.2222, -4.4343));
     }
 
     @Test
-    public void nonValidCoordenatesTest() {
-        // Should return NOK status
-        assertEquals(ResponseStatus.NOK, frontEnd.camJoin("test camera", Double.NaN, Double.NaN), 
-                    "Creating camera with a non existing latitude or longitude should return NOK");
+    public void nonValidLatitudeTest() {
+        // Should throw exception
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("test camera", -91, DEFAULT_LONG));
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("test camera", 91, DEFAULT_LONG));
+    }
+
+    @Test
+    public void nonValidLongitudeTest() {
+        // Should throw exception
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("test camera", DEFAULT_LAT, -91));
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("test camera", DEFAULT_LAT, 91));
+    }
+
+    @Test
+    public void nonValidCoordinatesNanTest() {
+        // Should throw exception
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("test camera", Double.NaN, Double.NaN));
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("test camera", Double.NaN, Double.NaN));
+    }
+
+    @Test
+    public void nonValidCoordinatesInfiniteTest() {
+        // Should throw exception
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("test camera", Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("test camera", Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("test camera", Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY));
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("test camera", Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY));
     }
 
     @Test
     public void nullCameraNameTest() {
-        // Should return an exception
-        Assertions.assertThrows(NullPointerException.class, () -> frontEnd.camJoin(null, DEFAULT_LAT, DEFAULT_LONG));
+        // Should throw exception
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin(null, DEFAULT_LAT, DEFAULT_LONG));
     }
 
     @Test
     public void emptyCameraNameTest() {
-        // Should return NOK status
-        assertEquals(ResponseStatus.NOK, frontEnd.camJoin("", DEFAULT_LAT, DEFAULT_LONG), 
-                    "Creating camera with an empty name should return NOK");
+        // Should throw exception
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("", DEFAULT_LAT, DEFAULT_LONG));
     }
 
     @Test
     public void blankCameraNameTest() {
-        // Should return NOK status
-        assertEquals(ResponseStatus.NOK, frontEnd.camJoin("   ", DEFAULT_LAT, DEFAULT_LONG), 
-                    "Creating camera with a blank name should return NOK");
+        // Should throw exception
+        Assertions.assertThrows(InvalidCameraArgumentsException.class, () -> frontEnd.camJoin("   ", DEFAULT_LAT, DEFAULT_LONG));
     }
 
 }

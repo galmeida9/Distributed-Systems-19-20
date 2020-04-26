@@ -55,18 +55,11 @@ public class EyeApp {
 		//TODO: Check for server not connected
 
 		try {
-			SiloFrontend.ResponseStatus res = frontend.camJoin(camName, lat, lon);
-			if (res.equals(SiloFrontend.ResponseStatus.OK)) {
-				log("Login success.");
-			}
-			else {
-				log("Login failure.");
-				frontend.exit();
-				return;
-			}
+			frontend.camJoin(camName, lat, lon);
+			log("Login success.");
 		}
 		catch (Exception e) {
-			//log(true, e.getMessage());
+			log("Login failure.");
 			frontend.exit();
 			return;
 		}
@@ -121,13 +114,14 @@ public class EyeApp {
 	private static void report() {
 		if (observations.isEmpty()) return;
 		try {
-			SiloFrontend.ResponseStatus res = frontend.report(observations);
+			frontend.report(observations);
 			observations.clear();
-			log("REPORT: "+res.toString());
-			System.out.println("Report was " + res.toString());
+			log("REPORT: OK");
+			System.out.println("Report was OK");
 		}
 		catch (InvalidTypeException | ReportException e){
 			log(e.getMessage(), true);
+			System.out.println("Report was NOK");
 		}
 	}
 
