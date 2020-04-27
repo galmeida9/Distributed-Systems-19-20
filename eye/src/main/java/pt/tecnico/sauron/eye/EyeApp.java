@@ -67,17 +67,19 @@ public class EyeApp {
 		int instance = inst;
 
 		// Join server
-		frontend = new SiloFrontend(zooHost, zooPort, instance);
-		//TODO: Check for server not connected
-
 		try {
+			frontend = new SiloFrontend(zooHost, zooPort, instance);
 			frontend.camJoin(camName, lat, lon);
 			System.out.println("Login success.");
 		}
-		catch (InvalidCameraArgumentsException | FailedConnectionException e) {
+		catch (InvalidCameraArgumentsException e) {
 			System.out.println("Login failure.");
 			frontend.exit();
 			return;
+		} catch (FailedConnectionException e) {
+			System.out.println(e.getMessage());
+			return;
+
 		}
 
 		// Execute commands

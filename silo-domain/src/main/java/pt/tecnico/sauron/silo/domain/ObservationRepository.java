@@ -19,7 +19,9 @@ public class ObservationRepository {
     }
 
     public List<ObservationEntity> getObservations(ObservationEntityType type, String id) {
-        return getTypeObservations(type).get(id);
+        Map<String, List<ObservationEntity>> typeMap = getTypeObservations(type);
+        if (!typeMap.containsKey(id)) typeMap.put(id, new ArrayList<ObservationEntity>());
+        return typeMap.get(id);
     }
 
     public void addObservation(ObservationEntityType type, String id, ObservationEntity obs) {

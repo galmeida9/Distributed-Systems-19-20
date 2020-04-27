@@ -42,8 +42,12 @@ public class SpotterApp {
         }
 
         int instance = inst;
-        silo = new SiloFrontend(args[0], args[1], instance);
-        //TODO: Check for server not connected
+        try {
+            silo = new SiloFrontend(args[0], args[1], instance);
+        } catch (FailedConnectionException e) {
+            System.out.println(e.getMessage());
+            return;
+        }
 
         Scanner scanner = new Scanner(System.in);
 
@@ -81,7 +85,7 @@ public class SpotterApp {
                         System.out.println("Usage: ctrl_ping <message>");
                         break;
                     }
-                    //FIXME: Bad catching
+                    //FIXME: Bad catching of failed connection
                     try {
                         System.out.println(silo.ctrlPing(line[1]));
                     } catch (FailedConnectionException e) {

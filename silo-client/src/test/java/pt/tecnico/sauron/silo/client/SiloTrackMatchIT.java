@@ -14,7 +14,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	private static String HOST = testProps.getProperty("zoo.host");
 	private static String PORT = testProps.getProperty("zoo.port");
 	private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
-	private static SiloFrontend frontend = new SiloFrontend(HOST, PORT, INSTANCE);
+	private static SiloFrontend frontend;
 
     private static String PERSON = "person";
 	private static String PERSON_ID_VALID = "1";
@@ -38,6 +38,7 @@ public class SiloTrackMatchIT extends BaseIT{
 		obsList.add(new ObservationObject(CAR, "20SZ21",CAM));
 
 		try {
+			frontend = new SiloFrontend(HOST, PORT, INSTANCE);
 			frontend.camJoin(CAM , CAM_LAT, CAM_LONG);
 			frontend.report(obsList);
         } catch (InvalidCameraArgumentsException | FailedConnectionException e) {

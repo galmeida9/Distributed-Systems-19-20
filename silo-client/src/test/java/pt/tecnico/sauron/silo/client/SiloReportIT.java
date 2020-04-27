@@ -14,7 +14,7 @@ public class SiloReportIT extends BaseIT {
 	private static String HOST = testProps.getProperty("zoo.host");
 	private static String PORT = testProps.getProperty("zoo.port");
 	private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
-	private static SiloFrontend frontend = new SiloFrontend(HOST, PORT, INSTANCE);
+	private static SiloFrontend frontend;
 
 	private static String PERSON = "person";
 	private static String PERSON_ID_VALID = "1";
@@ -33,7 +33,12 @@ public class SiloReportIT extends BaseIT {
 	// one-time initialization and clean-up
 	@BeforeAll
 	public static void oneTimeSetUp(){
-		observations = new ArrayList<>();
+		try {
+			frontend = new SiloFrontend(HOST, PORT, INSTANCE);
+			observations = new ArrayList<>();
+		} catch (FailedConnectionException e) {
+			fail("Should not have thrown any exception.");
+		}
 	}
 
 	@AfterAll

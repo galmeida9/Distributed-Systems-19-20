@@ -24,7 +24,7 @@ public class SiloFrontend {
     private ZKNaming zkNaming;
     private ZKRecord record;
 
-    public SiloFrontend(String zooHost, String zooPort, int instance) {
+    public SiloFrontend(String zooHost, String zooPort, int instance) throws FailedConnectionException {
         String path = "/grpc/sauron/silo";
         zkNaming = new ZKNaming(zooHost, zooPort);
 
@@ -33,28 +33,22 @@ public class SiloFrontend {
             try {
                 record = zkNaming.lookup(path);
             } catch (ZKNamingException e) {
-                System.out.println("Server with instance number " + instance + " not found.");
-                return;
+                throw new FailedConnectionException("Server with instance number " + instance + " not found.");
             }
         }
         else {
             try {
                 Collection servers = zkNaming.listRecords(path);
                 if (servers.isEmpty()) {
-                    //FIXME:
-                    System.out.println("No server is on");
-                    return;
+                    throw new FailedConnectionException("No server is on");
                 }
                 int num = (int) (Math.random()*servers.size());
                 record = (ZKRecord) servers.toArray()[num];
             }
             catch (ZKNamingException e) {
-                //FIXME:
-                e.printStackTrace();
+                throw new FailedConnectionException(e.getMessage());
             }
         }
-
-        if (record == null) return;
 
         //lookup
         String target = record.getURI();
@@ -97,6 +91,9 @@ public class SiloFrontend {
         try {
             Coordinates coords = Coordinates.newBuilder().setLat(lat).setLong(lon).build();
             stub.camJoin(CamJoinRequest.newBuilder().setCamName(camName).setCoordinates(coords).build());
+        }
+        catch (NullPointerException e) {
+            throw new InvalidCameraArgumentsException(e.getMessage());
         } catch (StatusRuntimeException e) {
             checkConnection(e.getStatus());
             throw new InvalidCameraArgumentsException(e.getMessage());
@@ -109,6 +106,9 @@ public class SiloFrontend {
             double lat = response.getCoordinates().getLat();
             double lon = response.getCoordinates().getLong();
             return lat + "," + lon;
+        }
+        catch (NullPointerException e) {
+            throw new CameraNotFoundException(e.getMessage());
         }
         catch (StatusRuntimeException e) {
             checkConnection(e.getStatus());

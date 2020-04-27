@@ -13,7 +13,7 @@ public class SiloCamJoinIT extends BaseIT {
     private static String HOST = testProps.getProperty("zoo.host");
     private static String PORT = testProps.getProperty("zoo.port");
     private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
-    private static SiloFrontend frontEnd = new SiloFrontend(HOST, PORT, INSTANCE);
+    private static SiloFrontend frontEnd;
     
     private static String DEFAULT_CAMERA = "camName";
     private static double DEFAULT_LAT = 1.232;
@@ -23,7 +23,12 @@ public class SiloCamJoinIT extends BaseIT {
 	// one-time initialization and clean-up
 	@BeforeAll
 	public static void oneTimeSetUp(){
-
+        try {
+            // start frontend
+            frontEnd = new SiloFrontend(HOST, PORT, INSTANCE);
+        } catch (FailedConnectionException e) {
+            fail("Should not have thrown any exception.");
+        }
     }
 
 	@AfterAll

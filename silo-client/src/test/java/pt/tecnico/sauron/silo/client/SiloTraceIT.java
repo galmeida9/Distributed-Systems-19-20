@@ -16,7 +16,7 @@ public class SiloTraceIT extends BaseIT {
 	private static String HOST = testProps.getProperty("zoo.host");
 	private static String PORT = testProps.getProperty("zoo.port");
 	private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
-	private static SiloFrontend frontend = new SiloFrontend(HOST, PORT, INSTANCE);
+	private static SiloFrontend frontend;
 
     private static String PERSON = "person";
 	private static String PERSON_ID_VALID = "1";
@@ -41,6 +41,7 @@ public class SiloTraceIT extends BaseIT {
 		obsList.add(new ObservationObject(CAR, CAR_ID_VALID,CAM_1));
 
 		try {
+			frontend = new SiloFrontend(HOST, PORT, INSTANCE);
             frontend.camJoin(CAM_1 ,CAM_1_LAT_, CAM_1_LONG);
 			frontend.camJoin(CAM_2, CAM_2_LAT_, CAM_2_LONG);
 			frontend.report(obsList);
