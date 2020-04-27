@@ -43,24 +43,28 @@ public class EyeApp {
 			System.out.println("Wrong argument types.\nUsage example: $ eye localhost 2181 /grpc/sauron/silo/1 Tagus 38.737613 -9.303164.\n");
 			return;
 		}
-		// Check if last argument is an number
+		// Check if last argument is an number (instance number)
+		int inst = -1;
 		if (args.length == 6) {
 			try {
-				Integer.parseInt(args[5]);
+				inst = Integer.parseInt(args[5]);
+				if (inst < 0 || inst > 9) {
+					System.out.println("Instance number is bigger than 9 or smaller than 0.\n" +
+							"Usage example: $ eye localhost 2181 /grpc/sauron/silo/1 Tagus 38.737613 -9.303164 1.\n");
+					return;
+				}
 			} catch (NumberFormatException e) {
 				System.out.println("Wrong argument types.\nUsage example: $ eye localhost 2181 /grpc/sauron/silo/1 Tagus 38.737613 -9.303164 1.\n");
 				return;
 			}
 		}
 
-
 		camName = args[2];
 		double lat = Double.parseDouble(args[3]);
 		double lon = Double.parseDouble(args[4]);
 		String zooHost = args[0];
 		String zooPort = args[1];
-		int instance = -1;
-		if (args.length == 6) instance = Integer.parseInt(args[5]);
+		int instance = inst;
 
 		// Join server
 		frontend = new SiloFrontend(zooHost, zooPort, instance);

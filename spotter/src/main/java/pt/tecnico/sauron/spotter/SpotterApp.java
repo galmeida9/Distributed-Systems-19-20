@@ -20,14 +20,28 @@ public class SpotterApp {
 			System.out.printf("arg[%d] = %s%n", i, args[i]);
 		}
 
+		// Check if there is enough arguments
         if (args.length < 2 || args.length > 3) {
-            System.out.printf("Wrong number of arguments%nUsage: java %s host port%n", SpotterApp.class.getName());
+            System.out.printf("Wrong number of arguments%nUsage: spotter host port%n");
             return;
         }
+        // Check if last argument is an integer between 0 and 9
+        int inst = -1;
+        if (args.length == 3) {
+            try {
+                inst = Integer.parseInt(args[2]);
+                if (inst < 0 || inst > 9) {
+                    System.out.printf("Wrong type of arguments%nExample: spotter localhost 2181 1%n");
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                System.out.printf("Instance number is bigger than 9 or smaller than 0" +
+                        "%nExample: spotter localhost 2181 1%n");
+                return;
+            }
+        }
 
-        //TODO: Add from args
-        int instance = -1;
-        if (args.length == 3) instance = Integer.parseInt(args[2]);
+        int instance = inst;
         silo = new SiloFrontend(args[0], args[1], instance);
         //TODO: Check for server not connected
 
