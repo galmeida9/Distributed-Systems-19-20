@@ -2,8 +2,10 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import pt.tecnico.sauron.silo.client.exceptions.*;
 import pt.tecnico.sauron.silo.grpc.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -30,11 +32,11 @@ public class SiloFrontend {
             try {
                 record = zkNaming.lookup(path);
             } catch (ZKNamingException e) {
-                //FIXME:
-                e.printStackTrace();
+                System.out.println("Server with instance number " + instance + " not found.");
+                return;
             }
         }
-        else if (instance < 0) {
+        else {
             try {
                 Collection servers = zkNaming.listRecords(path);
                 if (servers.isEmpty()) {
@@ -78,8 +80,7 @@ public class SiloFrontend {
     /*
     *   Debug
     */
-
-    private static final boolean DEBUG_FLAG = (System.getProperty("debug") != null);
+    private static final boolean DEBUG_FLAG = (System.getenv("debug").equals("true"));
 
     private static void debug(String debugMessage){
         if (DEBUG_FLAG)
@@ -103,7 +104,7 @@ public class SiloFrontend {
             CamInfoResponse response = stub.camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
             double lat = response.getCoordinates().getLat();
             double lon = response.getCoordinates().getLong();
-            return String.valueOf(lat + "," + lon);
+            return lat + "," + lon;
         }
         catch (RuntimeException e) {
             throw new CameraNotFoundException(e.getMessage());
@@ -171,12 +172,14 @@ public class SiloFrontend {
     *   Control operations
     */
 
-    public String ctrlPing(String input){
-        CtrlPingRequest request = CtrlPingRequest.newBuilder().setInput(input).build();
-        
-        CtrlPingResponse response = stub.ctrlPing(request);
-        
-        return response.getOutput();
+    public String ctrlPing(String input) throws FailedConnectionException{
+        try {
+            CtrlPingRequest request = CtrlPingRequest.newBuilder().setInput(input).build();
+            CtrlPingResponse response = stub.ctrlPing(request);
+            return response.getOutput();
+        } catch (Exception e) {
+            throw new FailedConnectionException("Failed to connect to server.");
+        }
     }
 
     public void ctrlClear() throws CannotClearServerException {
@@ -219,7 +222,7 @@ public class SiloFrontend {
             case "car":
                 return TypeObject.CAR;
             default:
-                throw new InvalidTypeException("Type \'" + type + "\' is incorrect.'");
+                throw new InvalidTypeException("Type '" + type + "' is incorrect.'");
         }
     }
 

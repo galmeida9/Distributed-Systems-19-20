@@ -1,9 +1,9 @@
 package pt.tecnico.sauron.spotter;
 
-import pt.tecnico.sauron.silo.client.CameraNotFoundException;
-import pt.tecnico.sauron.silo.client.CannotClearServerException;
-import pt.tecnico.sauron.silo.client.InvalidTypeException;
-import pt.tecnico.sauron.silo.client.NoObservationsFoundException;
+import pt.tecnico.sauron.silo.client.exceptions.CameraNotFoundException;
+import pt.tecnico.sauron.silo.client.exceptions.CannotClearServerException;
+import pt.tecnico.sauron.silo.client.exceptions.InvalidTypeException;
+import pt.tecnico.sauron.silo.client.exceptions.NoObservationsFoundException;
 import pt.tecnico.sauron.silo.client.ObservationObject;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
 

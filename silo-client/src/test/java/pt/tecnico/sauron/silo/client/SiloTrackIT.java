@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.*;
+import pt.tecnico.sauron.silo.client.exceptions.*;
 
 import java.util.ArrayList;
 import java.util.List;

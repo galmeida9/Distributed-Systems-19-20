@@ -3,6 +3,8 @@ package pt.tecnico.sauron.silo.client;
 import static org.junit.Assert.*;
 
 import org.junit.jupiter.api.*;
+import pt.tecnico.sauron.silo.client.exceptions.CannotClearServerException;
+import pt.tecnico.sauron.silo.client.exceptions.InvalidCameraArgumentsException;
 
 public class SiloCamJoinIT extends BaseIT {
 	

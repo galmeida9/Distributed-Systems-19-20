@@ -6,6 +6,7 @@ import io.grpc.ServerBuilder;
 import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 public class SiloServerApp {
 	
@@ -33,6 +34,7 @@ public class SiloServerApp {
 		final String path = "/grpc/sauron/silo/" + Integer.toString(instance);
 		final BindableService impl = new SiloServerImpl();
 		ZKNaming zkNaming = null;
+
 		try {
 			zkNaming = new ZKNaming(zooHost, zooPort);
 			zkNaming.rebind(path, host, port);
@@ -45,6 +47,14 @@ public class SiloServerApp {
 
 			// Server threads are running in the background.
 			System.out.println("Server started");
+
+			// Create new thread where we wait for user to end the server
+			new Thread(() -> {
+				System.out.println("<Press enter to shutdown>");
+				new Scanner(System.in).nextLine();
+
+				server.shutdown();
+			}).start();
 
 			// Do not exit the main thread. Wait until server is terminated.
 			server.awaitTermination();
@@ -60,6 +70,7 @@ public class SiloServerApp {
 					System.out.println(e.getMessage());
 				}
 			}
+			System.exit(0);
 		}
 	}
 	

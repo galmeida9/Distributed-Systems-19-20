@@ -1,4 +1,4 @@
-package pt.tecnico.sauron.silo.client;
+package pt.tecnico.sauron.silo.client.exceptions;
 
 // Exception for Invalid object type
 public class InvalidTypeException extends Exception {

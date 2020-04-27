@@ -36,15 +36,24 @@
 		</testResources>
     <plugins>
       <plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>${version.maven-resources-plugin}</version>
-				<configuration>
-					<nonFilteredFileExtensions>
-						<nonFilteredFileExtension>jks</nonFilteredFileExtension>
-					</nonFilteredFileExtensions>
-				</configuration>
-			</plugin>
-    </plugins>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-resources-plugin</artifactId>
+			<version>${version.maven-resources-plugin}</version>
+			<configuration>
+				<nonFilteredFileExtensions>
+					<nonFilteredFileExtension>jks</nonFilteredFileExtension>
+				</nonFilteredFileExtensions>
+			</configuration>
+		</plugin>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<version>${version.maven-compiler-plugin}</version>
+			<configuration>
+				<source>${version.java}</source>
+				<target>${version.java}</target>
+			</configuration>
+		</plugin>
+	</plugins>
   </build>
 </project>

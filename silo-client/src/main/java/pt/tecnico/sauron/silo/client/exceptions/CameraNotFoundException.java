@@ -1,4 +1,4 @@
-package pt.tecnico.sauron.silo.client;
+package pt.tecnico.sauron.silo.client.exceptions;
 
 //Exception for when camera is not found
 public class CameraNotFoundException extends Exception{

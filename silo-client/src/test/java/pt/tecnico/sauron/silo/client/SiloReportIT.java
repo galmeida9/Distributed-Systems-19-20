@@ -1,6 +1,10 @@
 package pt.tecnico.sauron.silo.client;
 
 import org.junit.jupiter.api.*;
+import pt.tecnico.sauron.silo.client.exceptions.CannotClearServerException;
+import pt.tecnico.sauron.silo.client.exceptions.InvalidCameraArgumentsException;
+import pt.tecnico.sauron.silo.client.exceptions.InvalidTypeException;
+import pt.tecnico.sauron.silo.client.exceptions.ReportException;
 
 import java.util.ArrayList;
 import java.util.List;
