@@ -1,5 +1,8 @@
 package pt.tecnico.sauron.silo.domain;
 
+import pt.tecnico.sauron.silo.domain.exceptions.CameraNotFoundException;
+import pt.tecnico.sauron.silo.domain.exceptions.InvalidCameraArguments;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 

@@ -5,6 +5,8 @@ import java.util.*;
 
 import pt.tecnico.sauron.silo.domain.*;
 import pt.tecnico.sauron.silo.domain.ObservationEntity.ObservationEntityType;
+import pt.tecnico.sauron.silo.domain.exceptions.CameraNotFoundException;
+import pt.tecnico.sauron.silo.domain.exceptions.InvalidCameraArguments;
 
 class SiloBackend {
     private ObservationRepository obsRepo;
@@ -46,16 +48,14 @@ class SiloBackend {
                 } catch (NumberFormatException e) {
                     throw new InvalidIdException(id + " for type " + type.toString() + " id too small.");
                 }
-                return;
+                break;
             case CAR:
                 String licensePlatePattern = "([A-Z][A-Z]|[0-9][0-9])([A-Z][A-Z]|[0-9][0-9])([A-Z][A-Z]|[0-9][0-9])";
                 if (!id.matches(licensePlatePattern) 
                     || id.chars().filter(Character::isDigit).count() > 4 
                     || id.chars().filter(Character::isLetter).count() > 4) 
                     throw new InvalidIdException(id + " for type " + type.toString() + " is not a license plate.");
-                return;
-            default:
-                return;
+                break;
         }
     }
 

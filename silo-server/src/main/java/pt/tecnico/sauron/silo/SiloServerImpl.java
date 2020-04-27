@@ -9,6 +9,8 @@ import com.google.protobuf.Timestamp;
 
 import io.grpc.stub.StreamObserver;
 import pt.tecnico.sauron.silo.domain.*;
+import pt.tecnico.sauron.silo.domain.exceptions.CameraNotFoundException;
+import pt.tecnico.sauron.silo.domain.exceptions.InvalidCameraArguments;
 import pt.tecnico.sauron.silo.grpc.*;
 
 public class SiloServerImpl extends SiloGrpc.SiloImplBase {

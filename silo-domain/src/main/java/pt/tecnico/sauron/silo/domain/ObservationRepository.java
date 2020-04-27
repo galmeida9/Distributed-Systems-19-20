@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import pt.tecnico.sauron.silo.domain.ObservationEntity.ObservationEntityType;
 
 public class ObservationRepository {
-    private Map<ObservationEntityType, Map<String, List<ObservationEntity>>> observations = new HashMap<>();
+    private Map<ObservationEntityType, Map<String, List<ObservationEntity>>> observations = new ConcurrentHashMap<>();
 
     public ObservationRepository() {
         for (ObservationEntityType type: ObservationEntityType.values()) {

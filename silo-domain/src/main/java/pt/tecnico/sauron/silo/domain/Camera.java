@@ -1,5 +1,7 @@
 package pt.tecnico.sauron.silo.domain;
 
+import pt.tecnico.sauron.silo.domain.exceptions.InvalidCameraArguments;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
