@@ -43,17 +43,17 @@ public class SiloTraceIT extends BaseIT {
 		try {
             frontend.camJoin(CAM_1 ,CAM_1_LAT_, CAM_1_LONG);
 			frontend.camJoin(CAM_2, CAM_2_LAT_, CAM_2_LONG);
-        } catch (InvalidCameraArgumentsException e) {
+			frontend.report(obsList);
+        } catch (InvalidCameraArgumentsException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
-		frontend.report(obsList);
     }
 
 	@AfterAll
 	public static void oneTimeTearDown() {
         try{
             frontend.ctrlClear();
-        } catch (CannotClearServerException e) {
+        } catch (CannotClearServerException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
 		frontend.exit();
@@ -84,7 +84,7 @@ public class SiloTraceIT extends BaseIT {
 	        Assert.assertEquals(PERSON_ID_VALID, obs.get(1).getId());
 	        Assert.assertEquals(CAM_1, obs.get(1).getCamName());
 
-        } catch (InvalidTypeException | NoObservationsFoundException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -96,7 +96,7 @@ public class SiloTraceIT extends BaseIT {
 	        List<ObservationObject> obs = frontend.trace(CAR, "40SA21");
 	        Assertions.assertTrue(obs.isEmpty());
 
-        } catch (InvalidTypeException | NoObservationsFoundException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }

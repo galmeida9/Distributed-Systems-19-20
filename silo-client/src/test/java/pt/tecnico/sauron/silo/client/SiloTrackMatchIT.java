@@ -39,17 +39,17 @@ public class SiloTrackMatchIT extends BaseIT{
 
 		try {
 			frontend.camJoin(CAM , CAM_LAT, CAM_LONG);
-        } catch (InvalidCameraArgumentsException e) {
+			frontend.report(obsList);
+        } catch (InvalidCameraArgumentsException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
-		frontend.report(obsList);
     }
 
 	@AfterAll
 	public static void oneTimeTearDown() {
         try{
             frontend.ctrlClear();
-        } catch (CannotClearServerException e) {
+        } catch (CannotClearServerException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
 		frontend.exit();
@@ -75,7 +75,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	        Assert.assertEquals(CAR_ID_VALID, obs.get(0).getId());
 	        Assert.assertEquals(CAM, obs.get(0).getCamName());
 
-        } catch (InvalidTypeException | NoObservationsFoundException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -93,7 +93,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	        Assert.assertEquals(CAM, obs.get(1).getCamName());
 
 
-        } catch (InvalidTypeException | NoObservationsFoundException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -110,7 +110,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	        Assert.assertEquals("20SZ21", obs.get(1).getId());
 	        Assert.assertEquals(CAM, obs.get(1).getCamName());
 
-        } catch (InvalidTypeException | NoObservationsFoundException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -127,7 +127,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	        Assert.assertEquals("20SZ21", obs.get(1).getId());
 	        Assert.assertEquals(CAM, obs.get(1).getCamName());
 
-        } catch (InvalidTypeException | NoObservationsFoundException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -144,7 +144,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	        Assert.assertEquals("20SZ21", obs.get(1).getId());
 	        Assert.assertEquals(CAM, obs.get(1).getCamName());
 
-        } catch (InvalidTypeException | NoObservationsFoundException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -155,7 +155,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	        List<ObservationObject> obs = frontend.trackMatch(CAR, "20SD");
 	        Assertions.assertTrue(obs.isEmpty());
 
-        } catch (InvalidTypeException | NoObservationsFoundException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -166,7 +166,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	        List<ObservationObject> obs = frontend.trackMatch(CAR, "40SA21");
 	        Assertions.assertTrue(obs.isEmpty());
 
-        } catch (InvalidTypeException | NoObservationsFoundException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -177,7 +177,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	        List<ObservationObject> obs = frontend.trackMatch(CAR, "");
 	        Assertions.assertTrue(obs.isEmpty());
 
-        } catch (InvalidTypeException | NoObservationsFoundException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
 	}

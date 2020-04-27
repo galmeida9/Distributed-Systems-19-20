@@ -1,10 +1,7 @@
 package pt.tecnico.sauron.silo.client;
 
 import org.junit.jupiter.api.*;
-import pt.tecnico.sauron.silo.client.exceptions.CannotClearServerException;
-import pt.tecnico.sauron.silo.client.exceptions.InvalidCameraArgumentsException;
-import pt.tecnico.sauron.silo.client.exceptions.InvalidTypeException;
-import pt.tecnico.sauron.silo.client.exceptions.ReportException;
+import pt.tecnico.sauron.silo.client.exceptions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +46,7 @@ public class SiloReportIT extends BaseIT {
 	public void setUp() {
 		try {
 			frontend.camJoin(CAM_NAME_EXISTENT, 1, 1);
-		} catch (InvalidCameraArgumentsException e) {
+		} catch (InvalidCameraArgumentsException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
 	}
@@ -58,7 +55,7 @@ public class SiloReportIT extends BaseIT {
 	public void tearDown() {
 		try {
             frontend.ctrlClear();
-        } catch (CannotClearServerException e) {
+        } catch (CannotClearServerException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
 		observations.clear();
@@ -74,7 +71,7 @@ public class SiloReportIT extends BaseIT {
 		try {
 			frontend.report( observations);
 		}
-		catch (InvalidTypeException | ReportException e){
+		catch (InvalidTypeException | ReportException | FailedConnectionException e){
 			System.out.println(e.getMessage());
 			fail("Should not have thrown any exception");
 		}
@@ -88,7 +85,7 @@ public class SiloReportIT extends BaseIT {
 		try {
 			frontend.report( observations);
 		}
-		catch (InvalidTypeException | ReportException e){
+		catch (InvalidTypeException | ReportException | FailedConnectionException e){
 			System.out.println(e.getMessage());
 			fail("Should not have thrown any exception");
 		}
@@ -103,7 +100,7 @@ public class SiloReportIT extends BaseIT {
 		try {
 			frontend.report( observations);
 		}
-		catch (InvalidTypeException | ReportException e){
+		catch (InvalidTypeException | ReportException | FailedConnectionException e){
 			System.out.println(e.getMessage());
 			fail("Should not have thrown any exception");
 		}
@@ -118,7 +115,7 @@ public class SiloReportIT extends BaseIT {
 		try {
 			frontend.report( observations);
 		}
-		catch (InvalidTypeException | ReportException e){
+		catch (InvalidTypeException | ReportException | FailedConnectionException e){
 			System.out.println(e.getMessage());
 			fail("Should not have thrown any exception");
 		}
@@ -135,7 +132,7 @@ public class SiloReportIT extends BaseIT {
 		try {
 			frontend.report( observations);
 		}
-		catch (InvalidTypeException | ReportException e){
+		catch (InvalidTypeException | ReportException | FailedConnectionException e){
 			System.out.println(e.getMessage());
 			fail("Should not have thrown any exception");
 		}

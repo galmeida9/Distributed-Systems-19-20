@@ -71,7 +71,8 @@ class SiloBackend {
         throw new NoObservationsException("No observations found for " + id);
     }
 
-    public List<ObservationEntity> trackMatch(ObservationEntityType type, String partId) throws InvalidIdException, NoObservationsException {
+    public List<ObservationEntity> trackMatch(ObservationEntityType type, String partId)
+            throws InvalidIdException, NoObservationsException {
         List<ObservationEntity> matches = new ArrayList<>();
         String pattern = partId.replace("*", ".*");
         if (pattern == null) pattern = ".*(" + partId + ").*";

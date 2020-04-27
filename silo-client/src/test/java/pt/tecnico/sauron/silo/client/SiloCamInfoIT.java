@@ -6,6 +6,7 @@ import static org.junit.Assert.*;
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.client.exceptions.CameraNotFoundException;
 import pt.tecnico.sauron.silo.client.exceptions.CannotClearServerException;
+import pt.tecnico.sauron.silo.client.exceptions.FailedConnectionException;
 import pt.tecnico.sauron.silo.client.exceptions.InvalidCameraArgumentsException;
 
 public class SiloCamInfoIT extends BaseIT {
@@ -29,7 +30,7 @@ public class SiloCamInfoIT extends BaseIT {
         try {
             // given a Camera for all the tests
             frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
-        } catch (InvalidCameraArgumentsException e) {
+        } catch (InvalidCameraArgumentsException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -38,7 +39,7 @@ public class SiloCamInfoIT extends BaseIT {
 	public static void oneTimeTearDown() {
         try {
             frontEnd.ctrlClear();
-        } catch (CannotClearServerException e) {
+        } catch (CannotClearServerException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
 		frontEnd.exit();
@@ -64,7 +65,7 @@ public class SiloCamInfoIT extends BaseIT {
             // Should return the coordinates for the camera
             assertEquals(COORDINATES, frontEnd.camInfo(DEFAULT_CAMERA), 
                     "Should return the coordinates of the camera.");
-        } catch (CameraNotFoundException e) {
+        } catch (CameraNotFoundException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }

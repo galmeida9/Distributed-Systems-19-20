@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.jupiter.api.*;
 import pt.tecnico.sauron.silo.client.exceptions.CannotClearServerException;
+import pt.tecnico.sauron.silo.client.exceptions.FailedConnectionException;
 import pt.tecnico.sauron.silo.client.exceptions.InvalidCameraArgumentsException;
 
 public class SiloCamJoinIT extends BaseIT {
@@ -41,7 +42,7 @@ public class SiloCamJoinIT extends BaseIT {
 	public void tearDown() {
 		try{
             frontEnd.ctrlClear();
-        } catch (CannotClearServerException e) {
+        } catch (CannotClearServerException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
 	}
@@ -53,7 +54,7 @@ public class SiloCamJoinIT extends BaseIT {
         // Should not throw exception
         try {
             frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
-        } catch (InvalidCameraArgumentsException e) {
+        } catch (InvalidCameraArgumentsException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -66,7 +67,7 @@ public class SiloCamJoinIT extends BaseIT {
             frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
         
             frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
-        } catch (InvalidCameraArgumentsException e) {
+        } catch (InvalidCameraArgumentsException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -79,7 +80,7 @@ public class SiloCamJoinIT extends BaseIT {
             frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
         
             frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
-        } catch (InvalidCameraArgumentsException e) {
+        } catch (InvalidCameraArgumentsException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
 

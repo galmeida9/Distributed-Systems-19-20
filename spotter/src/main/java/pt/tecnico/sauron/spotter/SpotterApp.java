@@ -1,9 +1,6 @@
 package pt.tecnico.sauron.spotter;
 
-import pt.tecnico.sauron.silo.client.exceptions.CameraNotFoundException;
-import pt.tecnico.sauron.silo.client.exceptions.CannotClearServerException;
-import pt.tecnico.sauron.silo.client.exceptions.InvalidTypeException;
-import pt.tecnico.sauron.silo.client.exceptions.NoObservationsFoundException;
+import pt.tecnico.sauron.silo.client.exceptions.*;
 import pt.tecnico.sauron.silo.client.ObservationObject;
 import pt.tecnico.sauron.silo.client.SiloFrontend;
 
@@ -70,19 +67,30 @@ public class SpotterApp {
                         System.out.println("Usage: ctrl_ping <message>");
                         break;
                     }
-                    System.out.println(silo.ctrlPing(line[1]));
+                    //FIXME: Bad catching
+                    try {
+                        System.out.println(silo.ctrlPing(line[1]));
+                    } catch (FailedConnectionException e) {
+                        e.printStackTrace();
+                    }
                     break;
 
                 case "ctrl_clear":
                     try {
                         silo.ctrlClear();
                         System.out.println("CtrlClear was OK");
-                    } catch (CannotClearServerException e) {
+                    //FIXME: Bad catching of failed connection
+                    } catch (CannotClearServerException | FailedConnectionException e) {
                         System.out.println("CtrlClear was NOK: " + e.getMessage());
                     }
                     break;
                 case "ctrl_init":
-                    silo.ctrlInit();
+                    try {
+                        silo.ctrlInit();
+                    //FIXME: Bad catching of failed connection
+                    } catch (FailedConnectionException e) {
+                        e.printStackTrace();
+                    }
                     System.out.println("CtrlInit was OK");
                     break;
 
@@ -116,7 +124,8 @@ public class SpotterApp {
             try {
                 coordinates = silo.camInfo(camName);
                 cams.put(camName, coordinates);
-            } catch (CameraNotFoundException e) {
+            //FIXME: Bad catching of failed connection
+            } catch (CameraNotFoundException | FailedConnectionException e) {
                 System.out.println(e.getMessage());
 
                 return "";
@@ -160,8 +169,8 @@ public class SpotterApp {
 	            obs.add(silo.track(type, id));
 	            processObservations(obs);
             }
-
-	    } catch (InvalidTypeException | NoObservationsFoundException e) {
+        //FIXME: Bad catching of failed connection
+	    } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -172,8 +181,8 @@ public class SpotterApp {
             List<ObservationObject> obs= silo.trace(type, id);
             obs.sort(Comparator.comparing(ObservationObject::getDatetime).reversed());
             processObservations(obs);
-
-        } catch (InvalidTypeException | NoObservationsFoundException e) {
+        //FIXME: Bad catching of failed connection
+        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
             System.out.println(e.getMessage());
         }
     }

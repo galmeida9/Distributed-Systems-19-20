@@ -2,10 +2,11 @@ package pt.tecnico.sauron.silo.client;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.client.exceptions.*;
 import pt.tecnico.sauron.silo.grpc.*;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -90,29 +91,31 @@ public class SiloFrontend {
     /*
     *   Public methods - server related
     */
-    public void camJoin(String camName, double lat, double lon) throws InvalidCameraArgumentsException {
+    public void camJoin(String camName, double lat, double lon) throws InvalidCameraArgumentsException, FailedConnectionException {
         try {
             Coordinates coords = Coordinates.newBuilder().setLat(lat).setLong(lon).build();
             stub.camJoin(CamJoinRequest.newBuilder().setCamName(camName).setCoordinates(coords).build());
-        } catch (RuntimeException e) {
+        } catch (StatusRuntimeException e) {
+            checkConnection(e.getStatus());
             throw new InvalidCameraArgumentsException(e.getMessage());
         }
     }
 
-    public String camInfo(String camName) throws CameraNotFoundException {
+    public String camInfo(String camName) throws CameraNotFoundException, FailedConnectionException {
         try {
             CamInfoResponse response = stub.camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
             double lat = response.getCoordinates().getLat();
             double lon = response.getCoordinates().getLong();
             return lat + "," + lon;
         }
-        catch (RuntimeException e) {
+        catch (StatusRuntimeException e) {
+            checkConnection(e.getStatus());
             throw new CameraNotFoundException(e.getMessage());
         }
 
     }
 
-    public void report(List<ObservationObject> observations) throws InvalidTypeException, ReportException {
+    public void report(List<ObservationObject> observations) throws InvalidTypeException, ReportException, FailedConnectionException {
         try{
             ReportRequest.Builder request = ReportRequest.newBuilder();
 
@@ -124,22 +127,25 @@ public class SiloFrontend {
             }
 
             stub.report(request.build());
-        } catch (RuntimeException e){
+        } catch (StatusRuntimeException e){
+            checkConnection(e.getStatus());
             throw new ReportException(e.getMessage());
         }
     }
 
-    public ObservationObject track(String type, String id) throws InvalidTypeException, NoObservationsFoundException {
+    public ObservationObject track(String type, String id) throws InvalidTypeException, NoObservationsFoundException, FailedConnectionException {
         try{
             TypeObject enumType = getTypeFromStr(type);
             TrackResponse response = stub.track(TrackRequest.newBuilder().setType(enumType).setId(id).build());
             return convertObservation(response.getObservation());
-        } catch (RuntimeException e) {
+        } catch (StatusRuntimeException e) {
+            checkConnection(e.getStatus());
             throw new NoObservationsFoundException(e.getMessage());
         }
     }
     
-    public List<ObservationObject> trackMatch(String type, String partId) throws InvalidTypeException, NoObservationsFoundException {
+    public List<ObservationObject> trackMatch(String type, String partId)
+            throws InvalidTypeException, NoObservationsFoundException, FailedConnectionException {
         try {
             TrackMatchRequest.Builder request = TrackMatchRequest.newBuilder();
 
@@ -148,12 +154,14 @@ public class SiloFrontend {
             TrackMatchResponse response = stub.trackMatch(request.build());
         
             return convertObservationList(response.getObservationList());
-        } catch (RuntimeException e) {
+        } catch (StatusRuntimeException e) {
+            checkConnection(e.getStatus());
             throw new NoObservationsFoundException(e.getMessage());
         }
     }
 
-    public List<ObservationObject> trace(String type, String id) throws InvalidTypeException, NoObservationsFoundException {
+    public List<ObservationObject> trace(String type, String id)
+            throws InvalidTypeException, NoObservationsFoundException, FailedConnectionException {
         try {
             TraceRequest.Builder request = TraceRequest.newBuilder();
 
@@ -163,7 +171,8 @@ public class SiloFrontend {
             TraceResponse response = stub.trace(request.build());
 
             return convertObservationList(response.getObservationList());
-        } catch (RuntimeException e) {
+        } catch (StatusRuntimeException e) {
+            checkConnection(e.getStatus());
             throw new NoObservationsFoundException(e.getMessage());
         }
     }
@@ -172,26 +181,32 @@ public class SiloFrontend {
     *   Control operations
     */
 
-    public String ctrlPing(String input) throws FailedConnectionException{
+    public String ctrlPing(String input) throws FailedConnectionException {
         try {
             CtrlPingRequest request = CtrlPingRequest.newBuilder().setInput(input).build();
             CtrlPingResponse response = stub.ctrlPing(request);
             return response.getOutput();
-        } catch (Exception e) {
+        } catch (StatusRuntimeException e) {
+            checkConnection(e.getStatus());
             throw new FailedConnectionException("Failed to connect to server.");
         }
     }
 
-    public void ctrlClear() throws CannotClearServerException {
+    public void ctrlClear() throws CannotClearServerException, FailedConnectionException {
         try {
             CtrlClearResponse.newBuilder().build();
-        } catch (RuntimeException e) {
+        } catch (StatusRuntimeException e) {
+            checkConnection(e.getStatus());
             throw new CannotClearServerException("Could clear the server.");
         }
     }
 
-    public void ctrlInit(){
-        CtrlClearResponse.newBuilder().build();
+    public void ctrlInit() throws FailedConnectionException {
+        try {
+            CtrlClearResponse.newBuilder().build();
+        } catch (StatusRuntimeException e) {
+            checkConnection(e.getStatus());
+        }
     }
 
     /*
@@ -229,6 +244,12 @@ public class SiloFrontend {
     private String getStrFromType(TypeObject type) {
         if (type == TypeObject.PERSON) return "person";
         return "car";
+    }
+
+    private void checkConnection(Status s) throws FailedConnectionException {
+        if (s.getCode().equals(Status.UNAVAILABLE.getCode())) {
+            throw new FailedConnectionException("Server is unavailable.");
+        }
     }
 }
 
