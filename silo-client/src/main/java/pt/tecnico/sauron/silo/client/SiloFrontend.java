@@ -81,7 +81,7 @@ public class SiloFrontend {
     /*
     *   Debug
     */
-    private static final boolean DEBUG_FLAG = (System.getenv("debug").equals("true"));
+    private static final boolean DEBUG_FLAG = "true".equals(System.getenv("debug"));
 
     private static void debug(String debugMessage){
         if (DEBUG_FLAG)
@@ -91,6 +91,8 @@ public class SiloFrontend {
     /*
     *   Public methods - server related
     */
+
+
     public void camJoin(String camName, double lat, double lon) throws InvalidCameraArgumentsException, FailedConnectionException {
         try {
             Coordinates coords = Coordinates.newBuilder().setLat(lat).setLong(lon).build();

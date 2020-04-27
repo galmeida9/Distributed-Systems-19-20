@@ -1,6 +1,7 @@
 package pt.tecnico.sauron.eye;
 
 import pt.tecnico.sauron.silo.client.exceptions.FailedConnectionException;
+import pt.tecnico.sauron.silo.client.exceptions.InvalidCameraArgumentsException;
 import pt.tecnico.sauron.silo.client.exceptions.InvalidTypeException;
 import pt.tecnico.sauron.silo.client.ObservationObject;
 import pt.tecnico.sauron.silo.client.exceptions.ReportException;
@@ -69,15 +70,28 @@ public class EyeApp {
 			frontend.camJoin(camName, lat, lon);
 			System.out.println("Login success.");
 		}
-		catch (Exception e) {
+		catch (InvalidCameraArgumentsException | FailedConnectionException e) {
 			System.out.println("Login failure.");
 			frontend.exit();
 			return;
 		}
 
-		int pause = 0;
+		// Execute commands
+		commandReader();
 
-		//TODO: make these next lines one function
+		// On close send observations
+		if (!observations.isEmpty()) report();
+		frontend.exit();
+	}
+
+
+	/*Helpers */
+
+	/**
+	 * Reads lines from terminal and executes commands
+	 */
+	private static void commandReader() {
+		int pause = 0;
 		Scanner scanner = new Scanner(System.in);
 		while (scanner.hasNextLine()) {
 			String[] line = scanner.nextLine().strip().split(",");
@@ -117,14 +131,11 @@ public class EyeApp {
 			}
 			else debug("UNKNOWN");
 		}
-
-		// On close send observations
-		if (!observations.isEmpty()) report();
-		frontend.exit();
 	}
 
-
-	/*Helpers */
+	/**
+	 * Send reports to silo
+	 */
 	private static void report() {
 		if (observations.isEmpty()) return;
 		try {
@@ -135,17 +146,35 @@ public class EyeApp {
 		catch (InvalidTypeException | ReportException e){
 			debug(e.getMessage());
 			System.out.println("Report was NOK");
+		//FIXME: Bad catching of failed connection and Check if should connect to other server
+		} catch (FailedConnectionException e) {
+			observations.clear();
+			System.out.println(e.getMessage());
+			System.exit(0);
 		}
 	}
 
+	/**
+	 * Returns true if the string is a number
+	 * @param input
+	 * @return
+	 */
 	private static boolean isNumeric(String input){
 		return input.matches("^[1-9][0-9]*$");
 	}
 
+	/**
+	 * Returns true if the string is a double
+	 * @param input
+	 * @return
+	 */
 	private static boolean isDouble(String input){
 		return input.matches("^(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?$");
 	}
 
+	/**
+	 * Adds hook for when the program is shut down
+	 */
 	private static void addShutdownHook(){
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			@Override
@@ -160,6 +189,10 @@ public class EyeApp {
 	 */
 	private static final boolean DEBUG_FLAG = (System.getenv("debug").equals("true"));
 
+	/**
+	 * Prints to terminal when debug flag is on
+	 * @param debugMessage
+	 */
 	private static void debug(String debugMessage){
 		if (DEBUG_FLAG)
 			System.err.println(debugMessage);
