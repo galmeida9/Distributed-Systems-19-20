@@ -193,7 +193,7 @@ public class EyeApp {
 	/*
 	 *   Debug
 	 */
-	private static final boolean DEBUG_FLAG = (System.getenv("debug").equals("true"));
+	private static final boolean DEBUG_FLAG = "true".equals(System.getenv("debug"));
 
 	/**
 	 * Prints to terminal when debug flag is on
