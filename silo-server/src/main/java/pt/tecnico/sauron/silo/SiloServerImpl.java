@@ -15,14 +15,24 @@ import pt.tecnico.sauron.silo.grpc.*;
 
 public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
-	private SiloBackend backend = new SiloBackend();
+	private SiloGossipManager manager;
+
+	public SiloServerImpl(int instance, String path, String zooHost, String zooPort) {
+		manager = new SiloGossipManager(instance, path, zooHost, zooPort);
+	}
 
 	/* Functionality operations */
 
 	@Override
 	public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver){
 		try {
-			backend.camJoin(request.getCamName(), request.getCoordinates().getLat(), request.getCoordinates().getLong());
+			//FIXME: Maybe refactor?
+			Operation o = manager.getSiloBackend()
+					.camJoin(request.getCamName(), request.getCoordinates().getLat(), request.getCoordinates().getLong());
+			manager.addOperation(o);
+
+			//FIXME: Remove, only for test
+			manager.propagateGossip();
 
 			CamJoinResponse response = CamJoinResponse.newBuilder().build();
 			responseObserver.onNext(response);
@@ -35,7 +45,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void camInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
 		try {
-			List<Double> listCoords = backend.camInfo(request.getCamName());
+			List<Double> listCoords = manager.getSiloBackend().camInfo(request.getCamName());
 			Coordinates coords = Coordinates.newBuilder()
 				.setLat(listCoords.get(0))
 				.setLong(listCoords.get(1))
@@ -58,7 +68,12 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 				obsEntity.add(convertToObsEntity(observation));
 			}
 
-			backend.report(request.getObservation(0).getCamName(), obsEntity);
+			//FIXME: Maybe refactor?
+			List<Operation> operations = manager.getSiloBackend()
+					.report(request.getObservation(0).getCamName(), obsEntity);
+			for (Operation o: operations) {
+				manager.addOperation(o);
+			}
 
 			ReportResponse response = ReportResponse.newBuilder().build();
 			responseObserver.onNext(response);
@@ -73,7 +88,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
 		try {
-			ObservationEntity obs = backend.track(convertToObsEntityType(request.getType()), request.getId());
+			ObservationEntity obs = manager.getSiloBackend().track(convertToObsEntityType(request.getType()), request.getId());
 			Observation obsResponse = convertToObservation(obs);
 			TrackResponse response = TrackResponse.newBuilder().setObservation(obsResponse).build();
 			responseObserver.onNext(response);
@@ -88,7 +103,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver) {
 		try {
-			List<ObservationEntity> obs = backend.trackMatch(convertToObsEntityType(request.getType()), request.getPartialId());
+			List<ObservationEntity> obs = manager.getSiloBackend().trackMatch(convertToObsEntityType(request.getType()), request.getPartialId());
 			TrackMatchResponse.Builder response = TrackMatchResponse.newBuilder();
 
 			for (ObservationEntity observation: obs) {
@@ -107,7 +122,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void trace(TraceRequest request, StreamObserver<TraceResponse> responseObserver) {
 		try{
-			List<ObservationEntity> obs = backend.trace(convertToObsEntityType(request.getType()), request.getId());
+			List<ObservationEntity> obs = manager.getSiloBackend().trace(convertToObsEntityType(request.getType()), request.getId());
 			TraceResponse.Builder response = TraceResponse.newBuilder();
 
 			for (ObservationEntity observation : obs) {
@@ -124,8 +139,6 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void ctrlPing(CtrlPingRequest request, StreamObserver<CtrlPingResponse> responseObserver) {
-		// FIXME: Check if this is right
-
 		String input = request.getInput();
 		String output = "Hello " + input + "!";
 		CtrlPingResponse response = CtrlPingResponse.newBuilder().setOutput(output).build();
@@ -136,7 +149,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void ctrlClear(CtrlClearRequest request, StreamObserver<CtrlClearResponse> responseObserver) {
 		try {
-			backend.ctrlClear();
+			manager.getSiloBackend().ctrlClear();
 
 			CtrlClearResponse response = CtrlClearResponse.newBuilder().build();
 			responseObserver.onNext(response);
@@ -148,8 +161,24 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void ctrlInit(CtrlInitRequest request, StreamObserver<CtrlInitResponse> responseObserver) {
-		// TODO:
 		CtrlInitResponse response = CtrlInitResponse.newBuilder().build();
+		responseObserver.onNext(response);
+		responseObserver.onCompleted();
+	}
+
+	@Override
+	public void gossipTS(GossipTSRequest request, StreamObserver<GossipTSResponse> responseObserver) {
+		//TODO:
+		manager.receiveGossip(request.getTimestampMap(), request.getInstance());
+		GossipTSResponse response = GossipTSResponse.newBuilder().build();
+		responseObserver.onNext(response);
+		responseObserver.onCompleted();
+	}
+
+	@Override
+	public void gossipUpdate(GossipUpdateRequest request, StreamObserver<GossipUpdateResponse> responseObserver) {
+		//TODO:
+		GossipUpdateResponse response = GossipUpdateResponse.newBuilder().build();
 		responseObserver.onNext(response);
 		responseObserver.onCompleted();
 	}

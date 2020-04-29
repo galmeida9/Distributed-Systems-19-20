@@ -24,13 +24,24 @@ public class ObservationRepository {
         return typeMap.get(id);
     }
 
-    public void addObservation(ObservationEntityType type, String id, ObservationEntity obs) {
+    public Operation addObservation(ObservationEntityType type, String id, ObservationEntity obs) {
         List<ObservationEntity> oldObs = getObservations(type, id);
         if (oldObs == null){
             oldObs = new ArrayList<>();
             getTypeObservations(type).put(id, oldObs);
         }
-        oldObs.add(obs); 
+        oldObs.add(obs);
+        return obs;
+    }
+
+    public void deleteObservation(ObservationEntityType type, String id, int opId) {
+        List<ObservationEntity> obs = getObservations(type, id);
+        for (int i = 0; i < obs.size(); i++) {
+            if (obs.get(i).getOpId() == opId) {
+                obs.remove(i);
+                break;
+            }
+        }
     }
 
     public int getRepoSize() {

@@ -2,7 +2,7 @@ package pt.tecnico.sauron.silo.domain;
 
 import java.time.LocalDateTime;
 
-public class ObservationEntity {
+public class ObservationEntity extends Operation {
     private ObservationEntityType type;
     private String id;
     private LocalDateTime dateTime;
@@ -13,7 +13,13 @@ public class ObservationEntity {
         CAR
     }
 
+    public ObservationEntity(ObservationEntityType type, String id, String camName, int opId) {
+        this(type, id, camName);
+        this.setOpId(opId);
+    }
+
     public ObservationEntity(ObservationEntityType type, String id, String camName) {
+        super(0, ObservationEntity.class.getSimpleName());
         this.type = type;
         this.id = id;
         this.camName = camName;

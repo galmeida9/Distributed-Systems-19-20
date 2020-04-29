@@ -6,12 +6,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Camera {
+public class Camera extends Operation {
     private String name;
     private double latitude;
     private double longitude;
 
+	Camera(String name, double lat, double lon, int opId) throws InvalidCameraArguments {
+		this(name, lat, lon);
+		this.setOpId(opId);
+	}
+
     Camera(String name, double lat, double lon) throws InvalidCameraArguments {
+		super(0, Camera.class.getSimpleName());
 		if ( name == null || name.isEmpty() || name.isBlank()
                 || lat > 90 || lat < -90
                 || lon > 90 || lon < -90

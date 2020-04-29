@@ -21,18 +21,28 @@ class SiloBackend {
         return camRepo.getCameraInfo(id);
     }
 
-    public void camJoin(String id, double lat,  double lon) throws InvalidCameraArguments {
-        camRepo.addCamera(id, lat, lon);
+    public Operation camJoin(String id, double lat,  double lon) throws InvalidCameraArguments {
+        return camRepo.addCamera(id, lat, lon);
+    }
+
+    void camDelete(Camera c) {
+        camRepo.deleteCamera(c.getName());
     }
 
 
-    public void report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
+    public List<Operation> report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
         camRepo.getCamera(camName);
+        List<Operation> operations = new ArrayList<>();
         for (ObservationEntity observation : obs){
             checkId(observation.getType(), observation.getId());
             observation.setDateTime(LocalDateTime.now());
-            obsRepo.addObservation(observation.getType(), observation.getId(), observation);
+            operations.add(obsRepo.addObservation(observation.getType(), observation.getId(), observation));
         }
+        return operations;
+    }
+
+    void deleteObservation(ObservationEntity o) {
+        obsRepo.deleteObservation(o.getType(), o.getCamName(), o.getOpId());
     }
 
 
@@ -100,5 +110,4 @@ class SiloBackend {
             throw new CannotClearServerException("Could not clear the server.");
         }
     }
-    
 }

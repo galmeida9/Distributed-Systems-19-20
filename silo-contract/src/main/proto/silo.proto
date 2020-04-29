@@ -12,6 +12,13 @@ enum TypeObject {
     CAR = 1;
 }
 
+// Operation
+message OperationMessage {
+    int32 operationId = 1;
+    Observation observation = 2;
+    CamJoinRequest camera = 3;
+}
+
 // observation
 message Observation {
     TypeObject type = 1;
@@ -104,22 +111,48 @@ message CtrlClearResponse {
 
 // ctrl_init
 message CtrlInitRequest {
-    // TODO LATER
+    // no arguments
 }
 
 message CtrlInitResponse {
     // No arguments
 }
 
+// Gossip
+
+// send initial timestamp
+message GossipTSRequest {
+    int32 instance = 1;
+    map<int32, int32> timestamp = 2;
+}
+
+message GossipTSResponse {
+}
+
+// send timestamp to receive updates
+message GossipUpdateRequest {
+    int32 instance = 1;
+    map<int32, int32> timestamp = 2;
+    repeated OperationMessage operation = 3;
+}
+
+message GossipUpdateResponse {
+    int32 instance = 1;
+    map<int32, int32> timestamp = 2;
+    repeated OperationMessage operation = 3;
+}
+
 // service
 service Silo {
-    rpc CamJoin(CamJoinRequest)         returns (CamJoinResponse);
-    rpc CamInfo(CamInfoRequest)         returns (CamInfoResponse);
-    rpc Report(ReportRequest)           returns (ReportResponse);
-    rpc Track(TrackRequest)             returns (TrackResponse);
-    rpc TrackMatch(TrackMatchRequest)   returns (TrackMatchResponse);
-    rpc Trace(TraceRequest)             returns (TraceResponse);
-    rpc CtrlPing(CtrlPingRequest)       returns (CtrlPingResponse);
-    rpc CtrlClear(CtrlClearRequest)     returns (CtrlClearResponse);
-    rpc CtrlInit(CtrlInitRequest)       returns (CtrlInitResponse);
+    rpc CamJoin(CamJoinRequest)             returns (CamJoinResponse);
+    rpc CamInfo(CamInfoRequest)             returns (CamInfoResponse);
+    rpc Report(ReportRequest)               returns (ReportResponse);
+    rpc Track(TrackRequest)                 returns (TrackResponse);
+    rpc TrackMatch(TrackMatchRequest)       returns (TrackMatchResponse);
+    rpc Trace(TraceRequest)                 returns (TraceResponse);
+    rpc CtrlPing(CtrlPingRequest)           returns (CtrlPingResponse);
+    rpc CtrlClear(CtrlClearRequest)         returns (CtrlClearResponse);
+    rpc CtrlInit(CtrlInitRequest)           returns (CtrlInitResponse);
+    rpc GossipTS(GossipTSRequest)           returns (GossipTSResponse);
+    rpc GossipUpdate(GossipUpdateRequest)   returns (GossipUpdateResponse);
 }

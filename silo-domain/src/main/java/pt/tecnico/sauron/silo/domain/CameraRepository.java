@@ -15,12 +15,14 @@ public class CameraRepository {
         return cameras.get(id);
     }
 
-    public void addCamera(String id, double lat,  double lon) throws InvalidCameraArguments {
+    public Operation addCamera(String id, double lat,  double lon) throws InvalidCameraArguments {
         if (cameras.containsKey(id) &&
                 (cameras.get(id).getLatitude() != lat || cameras.get(id).getLongitude() != lon)) {
             throw new InvalidCameraArguments("Camera already exists.");
         }
-        cameras.put(id, new Camera(id, lat, lon));
+        Camera camera = new Camera(id, lat, lon);
+        cameras.put(id, camera);
+        return camera;
     }
 
     public List<Double> getCameraInfo(String id) throws CameraNotFoundException {
@@ -31,6 +33,10 @@ public class CameraRepository {
 
     public int getRepoSize() {
         return cameras.size();
+    }
+
+    public void deleteCamera(String id) {
+        cameras.remove(id);
     }
 
     public void clear() {

@@ -31,12 +31,15 @@ public class SiloServerApp {
 		final String host = args[2];
 		final String port = args[3];
 		final int instance = Integer.parseInt(args[4]);
-		final String path = "/grpc/sauron/silo/" + Integer.toString(instance);
-		final BindableService impl = new SiloServerImpl();
+		final String root = "/grpc/sauron/silo";
+		final String path = root + '/' + Integer.toString(instance);
+		final BindableService impl = new SiloServerImpl(instance, root, zooHost, zooPort);
 		ZKNaming zkNaming = null;
 
 		try {
+			//TODO: Check if zooKeeper is not on
 			zkNaming = new ZKNaming(zooHost, zooPort);
+			//TODO: Check if is not replacing another server
 			zkNaming.rebind(path, host, port);
 
 			// Create a new server to listen on port
@@ -46,7 +49,7 @@ public class SiloServerApp {
 			server.start();
 
 			// Server threads are running in the background.
-			System.out.println("Server started");
+			System.out.println("Replica " + instance + " has started");
 
 			// Create new thread where we wait for user to end the server
 			new Thread(() -> {
