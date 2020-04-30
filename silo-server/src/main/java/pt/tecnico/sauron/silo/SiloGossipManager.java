@@ -77,6 +77,7 @@ public class SiloGossipManager {
      * @param operation
      */
     public void addOperation(Operation operation, int instance) {
+        if (!timestamp.containsKey(instance)) timestamp.put(instance, 0);
         int opId = timestamp.get(instance)+1;
         if (!executedOperations.containsKey(instance))
             executedOperations.put(instance, new ConcurrentHashMap<Integer, Operation>());
@@ -94,6 +95,7 @@ public class SiloGossipManager {
      */
     public List<Operation> getOperations(int minOpId, int instance) {
         List<Operation> result = new ArrayList<>();
+        if (!executedOperations.containsKey(instance)) return result;
         Map<Integer, Operation> instanceOperations = executedOperations.get(instance);
         for (Integer i: instanceOperations.keySet()) {
             if (i > minOpId) result.add(instanceOperations.get(i));
