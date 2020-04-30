@@ -13,13 +13,8 @@ public class ObservationEntity extends Operation {
         CAR
     }
 
-    public ObservationEntity(ObservationEntityType type, String id, String camName, int opId) {
-        this(type, id, camName);
-        this.setOpId(opId);
-    }
-
     public ObservationEntity(ObservationEntityType type, String id, String camName) {
-        super(0, ObservationEntity.class.getSimpleName());
+        super(ObservationEntity.class.getSimpleName());
         this.type = type;
         this.id = id;
         this.camName = camName;

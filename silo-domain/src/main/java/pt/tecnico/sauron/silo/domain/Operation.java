@@ -1,11 +1,11 @@
 package pt.tecnico.sauron.silo.domain;
 
 public class Operation {
-    private int opId;
+    private int opId = -1;
+    private int instance = -1;
     private String className = "UNKNOWN";
 
-    public Operation(int opId, String className) {
-        this.opId = opId;
+    public Operation(String className) {
         this.className = className;
     }
 
@@ -17,7 +17,20 @@ public class Operation {
         this.opId = opId;
     }
 
+    public int getInstance() {
+        return instance;
+    }
+
+    public void setInstance(int instance) {
+        this.instance = instance;
+    }
+
     public String getClassName() {
+        return className;
+    }
+
+    @Override
+    public String toString() {
         return className;
     }
 }

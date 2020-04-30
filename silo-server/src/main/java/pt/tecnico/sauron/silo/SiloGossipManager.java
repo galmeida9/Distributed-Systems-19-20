@@ -15,36 +15,35 @@ import pt.ulisboa.tecnico.sdis.zk.ZKRecord;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SiloGossipManager {
     private SiloBackend siloBackend = new SiloBackend();
-    private Map<Integer, Operation> executedOperations = new HashMap<>();
+    private Map<Integer, Map<Integer, Operation>> executedOperations = new HashMap<>();
     private Map<Integer, Integer> timestamp = new HashMap<>();
     private int instance;
     private String root;
     private String currentPath;
-    private String zooHost;
-    private String zooPort;
     private ZKNaming zkNaming;
 
     public SiloGossipManager(int instance, String root, String zooHost, String zooPort) {
         this.instance = instance;
         this.root = root;
         this.currentPath = root + '/' + Integer.toString(instance);
-        this.zooHost = zooHost;
-        this.zooPort = zooPort;
         timestamp.put(instance, 0);
         this.zkNaming = new ZKNaming(zooHost, zooPort);
 
-        final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
-        executor.schedule(new Runnable() {
-            @Override
-            public void run() {
-                propagateGossip();
-            }
-        }, 30, TimeUnit.SECONDS);
+        // Create new thread where we propagate our gossips
+        new Thread(() -> {
+            Timer timer = new Timer();
+            TimerTask gossip = new TimerTask() {
+                @Override
+                public void run() {
+                    propagateGossip();
+                }
+            };
+            timer.schedule(gossip, 30000, 30000);
+        }).start();
     }
 
     /**
@@ -55,11 +54,20 @@ public class SiloGossipManager {
         return timestamp;
     }
 
-    public void updateTimestamp(int inst, int value) {
-        if (!timestamp.containsKey(inst)) timestamp.put(inst, value);
-        else timestamp.replace(inst, value);
+    /**
+     * Update timestamp given an instance and the new timestamp value
+     * @param instance
+     * @param value
+     */
+    public void updateTimestamp(int instance, int value) {
+        if (!timestamp.containsKey(instance)) timestamp.put(instance, value);
+        else timestamp.replace(instance, value);
     }
 
+    /**
+     * Get this replica instance number
+     * @return instance
+     */
     public int getInstance() {
         return instance;
     }
@@ -68,37 +76,15 @@ public class SiloGossipManager {
      * Adds an operation to the register
      * @param operation
      */
-    public void addOperation(Operation operation) {
+    public void addOperation(Operation operation, int instance) {
         int opId = timestamp.get(instance)+1;
-        executedOperations.put(opId, operation);
+        if (!executedOperations.containsKey(instance))
+            executedOperations.put(instance, new ConcurrentHashMap<Integer, Operation>());
+        executedOperations.get(instance).put(opId, operation);
         operation.setOpId(opId);
+        operation.setInstance(instance);
         timestamp.replace(instance, opId);
-    }
-
-    /**
-     * Deletes all operations after the given smallest operation id
-     * @param minOpId
-     */
-    public void deleteOperations(int minOpId) {
-        for (Integer i: executedOperations.keySet()) {
-            if (i > minOpId) {
-                deleteOperation(executedOperations.get(i));
-                executedOperations.remove(i);
-            }
-        }
-    }
-
-    /**
-     * Deletes an operation given itself
-     * @param operation
-     */
-    public void deleteOperation(Operation operation) {
-        if (operation.getClassName().equals(ObservationEntity.class.getSimpleName())) {
-            siloBackend.deleteObservation( (ObservationEntity) operation );
-        }
-        else if (operation.getClassName().equals(Camera.class.getSimpleName())) {
-            siloBackend.camDelete( (Camera) operation);
-        }
+        System.out.println("Received a " + operation + " from replica " + instance);
     }
 
     /**
@@ -106,10 +92,11 @@ public class SiloGossipManager {
      * @param minOpId
      * @return Operations
      */
-    public Map<Integer, Operation> getOperations(int minOpId) {
-        Map<Integer, Operation> result = new HashMap<>();
-        for (Integer i: executedOperations.keySet()) {
-            if (i > minOpId) result.put(i, executedOperations.get(i));
+    public List<Operation> getOperations(int minOpId, int instance) {
+        List<Operation> result = new ArrayList<>();
+        Map<Integer, Operation> instanceOperations = executedOperations.get(instance);
+        for (Integer i: instanceOperations.keySet()) {
+            if (i > minOpId) result.add(instanceOperations.get(i));
         }
         return result;
     }
@@ -172,17 +159,9 @@ public class SiloGossipManager {
             }
         }
         catch (ZKNamingException e) {
-            //FIXME: Again, should not happen, but if is does...
+            //FIXME: Again, should not happen, but if it does...
             e.printStackTrace();
         }
-
-        final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
-        executor.schedule(new Runnable() {
-            @Override
-            public void run() {
-                propagateGossip();
-            }
-        }, 30, TimeUnit.SECONDS);
     }
 
     /**
@@ -194,56 +173,85 @@ public class SiloGossipManager {
      */
     public void receiveGossip(Map<Integer, Integer> otherTimestamp, int otherInstance) throws InvalidTypeException {
         // Check if other replica needs update from this replica
-        if ( !(otherTimestamp.containsKey(instance)) || ( otherTimestamp.get(instance) < timestamp.get(instance))) {
-            
-            int startPoint;
-            if (!(otherTimestamp.containsKey(instance)))
-                startPoint = 1;
-            else
-                startPoint = otherTimestamp.get(instance) + 1;
-            List<OperationMessage> opsToSend = new ArrayList<>();
-            for (int i = startPoint; i <= timestamp.get(instance); i++) {
-                if (executedOperations.get(i).getClassName().equals(Camera.class.getSimpleName())) {
-                    Camera camera = (Camera) executedOperations.get(i);
-                    CamJoinRequest cameraRequest = CamJoinRequest.newBuilder().setCamName(camera.getName())
-                                                    .setCoordinates(Coordinates.newBuilder()
-                                                        .setLat(camera.getLatitude())
-                                                        .setLong(camera.getLongitude()).build())
-                                                    .build();
-                    opsToSend.add(OperationMessage.newBuilder().setCamera(cameraRequest).setOperationId(i).build());
-                    System.out.println("Sending Camera " + camera.getName());
-                }
-                else {
-                    ObservationEntity obs = (ObservationEntity) executedOperations.get(i);
-                    Observation obsRequest = Observation.newBuilder()
-                                                .setType(convertToType(obs.getType()))
-                                                .setId(obs.getId())
-                                                .setDateTime(convertToTimeStamp(obs.getDateTime()))
-                                                .setCamName(obs.getCamName())
-                                                .build();
-                    opsToSend.add(OperationMessage.newBuilder().setObservation(obsRequest).setOperationId(i).build());
-                    System.out.println("Sending observation " + obs.getId());
-                }
-            }
+        List<OperationMessage> opsToSend = new ArrayList<>();
+        for (Operation operation : getUpdatesForInstance(otherTimestamp, otherInstance)) {
+            opsToSend.add(convertOperationToMessage(operation));
+            System.out.println("Sending " + operation);
+        }
 
-            try{
-                String path = root + '/' + Integer.toString(otherInstance);
-                ZKRecord zkRecord = zkNaming.lookup(path);
-                ManagedChannel channel = ManagedChannelBuilder.forTarget(zkRecord.getURI()).usePlaintext().build();
-                SiloGrpc.SiloBlockingStub stub = SiloGrpc.newBlockingStub(channel);
-                GossipUpdateRequest request = GossipUpdateRequest.newBuilder()
-                                                                    .setInstance(instance)
-                                                                    .putAllTimestamp(timestamp)
-                                                                    .addAllOperation(opsToSend)
-                                                                    .build();
-                stub.gossipUpdate(request);
-                channel.shutdown();
-            } catch (StatusRuntimeException | ZKNamingException e) {
-                System.out.println("Caught exception " + e.getMessage() + "when trying to contact replica " + otherInstance);
-            }
+        // If there aren't updates, just return
+        if (opsToSend.isEmpty()) return;
+
+        try{
+            String path = root + '/' + Integer.toString(otherInstance);
+            ZKRecord zkRecord = zkNaming.lookup(path);
+            ManagedChannel channel = ManagedChannelBuilder.forTarget(zkRecord.getURI()).usePlaintext().build();
+            SiloGrpc.SiloBlockingStub stub = SiloGrpc.newBlockingStub(channel);
+            GossipUpdateRequest request = GossipUpdateRequest.newBuilder()
+                                                                .setInstance(instance)
+                                                                .putAllTimestamp(timestamp)
+                                                                .addAllOperation(opsToSend)
+                                                                .build();
+            //FIXME: Shouldn't we treat the response?
+            stub.gossipUpdate(request);
+            channel.shutdown();
+        } catch (StatusRuntimeException | ZKNamingException e) {
+            System.out.println("Caught exception " + e.getMessage() + "when trying to contact replica " + otherInstance);
         }
     }
 
+    /**
+     * Returns a list with the operations that the other replica doesn't have
+     * @param otherTimestamp
+     * @param otherInstance
+     * @return
+     */
+    private List<Operation> getUpdatesForInstance(Map<Integer, Integer> otherTimestamp, int otherInstance) {
+        List<Operation> result = new ArrayList<>();
+        for (int i: this.timestamp.keySet()) {
+            if (i == otherInstance) continue;
+            if (!otherTimestamp.containsKey(i))
+                result.addAll(getOperations(-1, i));
+            else if (otherTimestamp.get(i) < this.timestamp.get(i))
+                result.addAll(getOperations(otherTimestamp.get(i), i));
+        }
+        return result;
+    }
+
+    private OperationMessage convertOperationToMessage(Operation operation) throws InvalidTypeException {
+        if (operation.getClassName().equals(Camera.class.getSimpleName())) {
+            Camera camera = (Camera) operation;
+            CamJoinRequest cameraRequest = CamJoinRequest.newBuilder().setCamName(camera.getName())
+                    .setCoordinates(Coordinates.newBuilder()
+                            .setLat(camera.getLatitude())
+                            .setLong(camera.getLongitude()).build())
+                    .build();
+            return OperationMessage.newBuilder()
+                    .setCamera(cameraRequest)
+                    .setOperationId(operation.getOpId())
+                    .build();
+        }
+        else {
+            ObservationEntity obs = (ObservationEntity) operation;
+            Observation obsRequest = Observation.newBuilder()
+                    .setType(convertToType(obs.getType()))
+                    .setId(obs.getId())
+                    .setDateTime(convertToTimeStamp(obs.getDateTime()))
+                    .setCamName(obs.getCamName())
+                    .build();
+            return OperationMessage.newBuilder()
+                    .setObservation(obsRequest)
+                    .setOperationId(operation.getOpId())
+                    .build();
+        }
+    }
+
+    /**
+     * Returns the protobuf TypeObject corresponding to the observation type
+     * @param type
+     * @return TypeObject
+     * @throws InvalidTypeException
+     */
     public TypeObject convertToType(ObservationEntity.ObservationEntityType type) throws InvalidTypeException {
 		switch (type) {
 			case PERSON:
@@ -254,20 +262,14 @@ public class SiloGossipManager {
 				throw new InvalidTypeException("Unknown type: " + type.toString());
 		}
     }
-    
+
+    /**
+     * Converts a localdatetime date to a Timestamp from protobuf
+     * @param date
+     * @return
+     */
     public Timestamp convertToTimeStamp(LocalDateTime date) {
 		return Timestamp.newBuilder().setSeconds(date.toEpochSecond(ZoneOffset.UTC))
-									.setNanos(date.getNano())
-									.build();
+									.setNanos(date.getNano()).build();
 	}
-
-    /*
-     * Debug functions
-     */
-    private static final boolean DEBUG_FLAG = "true".equals(System.getenv("debug"));
-
-    private static void debug(String debugMessage){
-        if (DEBUG_FLAG)
-            System.err.println(debugMessage);
-    }
 }

@@ -29,7 +29,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			//FIXME: Maybe refactor?
 			Operation o = manager.getSiloBackend()
 					.camJoin(request.getCamName(), request.getCoordinates().getLat(), request.getCoordinates().getLong());
-			manager.addOperation(o);
+			manager.addOperation(o, manager.getInstance());
 
 			CamJoinResponse response = CamJoinResponse.newBuilder().build();
 			responseObserver.onNext(response);
@@ -69,7 +69,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			List<Operation> operations = manager.getSiloBackend()
 					.report(request.getObservation(0).getCamName(), obsEntity);
 			for (Operation o: operations) {
-				manager.addOperation(o);
+				manager.addOperation(o, manager.getInstance());
 			}
 
 			ReportResponse response = ReportResponse.newBuilder().build();
@@ -179,21 +179,23 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			for (OperationMessage opMessage: request.getOperationList()) {
 				if (opMessage.hasCamera()) {
 					System.out.println(opMessage.getCamera());
-					manager.getSiloBackend().camJoin(
+					Operation o = manager.getSiloBackend().camJoin(
 						opMessage.getCamera().getCamName(), opMessage.getCamera().getCoordinates().getLat(),
 						opMessage.getCamera().getCoordinates().getLong());
-					System.out.println("Received Camera " + opMessage.getCamera().getCamName());
+
+					manager.addOperation(o, request.getInstance());
 				}
-				else {
+				else if (opMessage.hasObservation()) {
 					List<ObservationEntity> obs = new ArrayList<>();
 					obs.add(convertToObsEntity(opMessage.getObservation()));
-					manager.getSiloBackend().report(opMessage.getObservation().getCamName(), obs);
-					System.out.println("Received observation " + opMessage.getObservation().getId());
+					//FIXME: Shouldn't it report only one time?
+					for (Operation o: manager.getSiloBackend().report(opMessage.getObservation().getCamName(), obs))
+						manager.addOperation(o, request.getInstance());
 				}
 			}
 
 			manager.updateTimestamp(request.getInstance(), request.getTimestampMap().get(request.getInstance()));
-			// manager.receiveGossip(request.getTimestampMap(), request.getInstance());
+
 			GossipUpdateResponse response = GossipUpdateResponse.newBuilder().build();
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
@@ -234,7 +236,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		}
 	}
 
-		private ObservationEntity convertToObsEntity(Observation obs) throws InvalidTypeException {
+	private ObservationEntity convertToObsEntity(Observation obs) throws InvalidTypeException {
 		return new ObservationEntity(convertToObsEntityType(obs.getType()),
 				obs.getId(),
 				obs.getCamName());

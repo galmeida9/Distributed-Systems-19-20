@@ -11,13 +11,8 @@ public class Camera extends Operation {
     private double latitude;
     private double longitude;
 
-	public Camera(String name, double lat, double lon, int opId) throws InvalidCameraArguments {
-		this(name, lat, lon);
-		this.setOpId(opId);
-	}
-
     public Camera(String name, double lat, double lon) throws InvalidCameraArguments {
-		super(0, Camera.class.getSimpleName());
+		super(Camera.class.getSimpleName());
 		if ( name == null || name.isEmpty() || name.isBlank()
                 || lat > 90 || lat < -90
                 || lon > 90 || lon < -90
@@ -55,5 +50,10 @@ public class Camera extends Operation {
 
 	public List<Double> getCoordinates() {
 		return new ArrayList<>(Arrays.asList(latitude, longitude));
+	}
+
+	@Override
+	public String toString() {
+		return "Camera " + getName();
 	}
 }
