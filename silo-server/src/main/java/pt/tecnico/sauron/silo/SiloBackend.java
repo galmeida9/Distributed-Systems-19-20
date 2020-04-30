@@ -7,8 +7,9 @@ import pt.tecnico.sauron.silo.domain.*;
 import pt.tecnico.sauron.silo.domain.ObservationEntity.ObservationEntityType;
 import pt.tecnico.sauron.silo.domain.exceptions.CameraNotFoundException;
 import pt.tecnico.sauron.silo.domain.exceptions.InvalidCameraArguments;
+import pt.tecnico.sauron.silo.domain.exceptions.InvalidIdException;
 
-class SiloBackend {
+class SiloBackend implements OperationStore {
     private ObservationRepository obsRepo;
     private CameraRepository camRepo;
 
@@ -21,16 +22,11 @@ class SiloBackend {
         return camRepo.getCameraInfo(id);
     }
 
-    public Operation camJoin(String id, double lat,  double lon) throws InvalidCameraArguments {
+    public Operation addCamera(String id, double lat, double lon) throws InvalidCameraArguments {
         return camRepo.addCamera(id, lat, lon);
     }
 
-    void camDelete(Camera c) {
-        camRepo.deleteCamera(c.getName());
-    }
-
-
-    public List<Operation> report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
+    public List<Operation> addObservation(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
         camRepo.getCamera(camName);
         List<Operation> operations = new ArrayList<>();
         for (ObservationEntity observation : obs){
@@ -40,11 +36,6 @@ class SiloBackend {
         }
         return operations;
     }
-
-    void deleteObservation(ObservationEntity o) {
-        obsRepo.deleteObservation(o.getType(), o.getCamName(), o.getOpId());
-    }
-
 
     private void checkId(ObservationEntityType type, String id) throws InvalidIdException {
         if (id == null || id.isEmpty() || id.isBlank()) {
