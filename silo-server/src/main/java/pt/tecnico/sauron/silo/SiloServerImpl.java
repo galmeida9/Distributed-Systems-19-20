@@ -6,6 +6,7 @@ import pt.tecnico.sauron.silo.domain.ObservationEntity;
 import pt.tecnico.sauron.silo.domain.Operation;
 import pt.tecnico.sauron.silo.domain.exceptions.CameraNotFoundException;
 import pt.tecnico.sauron.silo.domain.exceptions.InvalidCameraArguments;
+import pt.tecnico.sauron.silo.domain.exceptions.InvalidIdException;
 import pt.tecnico.sauron.silo.grpc.*;
 
 import java.time.LocalDateTime;
@@ -28,7 +29,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		try {
 			//FIXME: Maybe refactor?
 			Operation o = manager.getSiloBackend()
-					.camJoin(request.getCamName(), request.getCoordinates().getLat(), request.getCoordinates().getLong());
+					.addCamera(request.getCamName(), request.getCoordinates().getLat(), request.getCoordinates().getLong());
 			manager.addOperation(o, manager.getInstance());
 
 			CamJoinResponse response = CamJoinResponse.newBuilder().build();
@@ -59,17 +60,10 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver) {
 		try{
-			List<ObservationEntity> obsEntity = new ArrayList<>();
 			List<Observation> obs = request.getObservationList();
 			for (Observation observation : obs){
-				obsEntity.add(convertToObsEntity(observation));
-			}
-
-			//FIXME: Maybe refactor?
-			List<Operation> operations = manager.getSiloBackend()
-					.report(request.getObservation(0).getCamName(), obsEntity);
-			for (Operation o: operations) {
-				manager.addOperation(o, manager.getInstance());
+				ObservationEntity observationEntity = convertToObsEntity(observation);
+				manager.addOperation( observationEntity.addToStore(manager.getSiloBackend()) , manager.getInstance());
 			}
 
 			ReportResponse response = ReportResponse.newBuilder().build();
@@ -176,24 +170,19 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void gossipUpdate(GossipUpdateRequest request, StreamObserver<GossipUpdateResponse> responseObserver) {
 		try {
-			List<ObservationEntity> obs = new ArrayList<>();
 			for (OperationMessage opMessage: request.getOperationList()) {
 				if (opMessage.hasCamera()) {
-					Operation o = manager.getSiloBackend().camJoin(
+					Operation o = manager.getSiloBackend().addCamera(
 						opMessage.getCamera().getCamName(), opMessage.getCamera().getCoordinates().getLat(),
 						opMessage.getCamera().getCoordinates().getLong());
 
-					manager.addOperation(o, request.getInstance());
+					manager.addOperation(o, o.getInstance());
 				}
 				else if (opMessage.hasObservation()) {
-					obs.add(convertToObsEntity(opMessage.getObservation()));
+					ObservationEntity entity = convertToObsEntity(opMessage.getObservation());
+					manager.addOperation(entity.addToStore(manager.getSiloBackend()), entity.getInstance());
 				}
 			}
-
-			if (!obs.isEmpty())
-				for (Operation o: manager.getSiloBackend().report(obs.get(0).getCamName(), obs))
-					manager.addOperation(o, request.getInstance());
-
 			manager.updateTimestamp(request.getInstance(), request.getTimestampMap().get(request.getInstance()));
 
 			GossipUpdateResponse response = GossipUpdateResponse.newBuilder().build();

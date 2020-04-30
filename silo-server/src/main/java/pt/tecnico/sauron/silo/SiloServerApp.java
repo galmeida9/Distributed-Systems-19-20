@@ -20,9 +20,9 @@ public class SiloServerApp {
 		}
 
 		// check arguments
-		if (args.length < 1) {
+		if (args.length < 5 || args.length > 6) {
 			System.err.println("Argument(s) missing!");
-			System.err.printf("Usage: java %s port%n", SiloServerApp.class.getName());
+			System.err.printf("Usage: $%s zooHost zooPort serverHost serverPort instanceNumber%n", SiloServerApp.class.getName());
 			return;
 		}
 

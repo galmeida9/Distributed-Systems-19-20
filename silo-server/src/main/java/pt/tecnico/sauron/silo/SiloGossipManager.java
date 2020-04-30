@@ -82,11 +82,13 @@ public class SiloGossipManager {
         int opId = timestamp.get(instance)+1;
         if (!executedOperations.containsKey(instance))
             executedOperations.put(instance, new ConcurrentHashMap<Integer, Operation>());
+
         executedOperations.get(instance).put(opId, operation);
         operation.setOpId(opId);
         operation.setInstance(instance);
         timestamp.replace(instance, opId);
-        System.out.println("Received a " + operation + " from replica " + instance);
+        System.out.println("Received a " + operation + " from " +
+                ( (instance != this.instance) ? "replica " + instance : "client") );
     }
 
     /**
