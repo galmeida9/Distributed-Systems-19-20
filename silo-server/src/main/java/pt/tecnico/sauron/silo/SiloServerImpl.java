@@ -1,17 +1,17 @@
 package pt.tecnico.sauron.silo;
 
+import com.google.protobuf.Timestamp;
+import io.grpc.stub.StreamObserver;
+import pt.tecnico.sauron.silo.domain.ObservationEntity;
+import pt.tecnico.sauron.silo.domain.Operation;
+import pt.tecnico.sauron.silo.domain.exceptions.CameraNotFoundException;
+import pt.tecnico.sauron.silo.domain.exceptions.InvalidCameraArguments;
+import pt.tecnico.sauron.silo.grpc.*;
+
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.google.protobuf.Timestamp;
-
-import io.grpc.stub.StreamObserver;
-import pt.tecnico.sauron.silo.domain.*;
-import pt.tecnico.sauron.silo.domain.exceptions.CameraNotFoundException;
-import pt.tecnico.sauron.silo.domain.exceptions.InvalidCameraArguments;
-import pt.tecnico.sauron.silo.grpc.*;
 
 public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
@@ -74,6 +74,8 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			for (Operation o: operations) {
 				manager.addOperation(o);
 			}
+
+			manager.propagateGossip();
 
 			ReportResponse response = ReportResponse.newBuilder().build();
 			responseObserver.onNext(response);
@@ -169,8 +171,10 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void gossipTS(GossipTSRequest request, StreamObserver<GossipTSResponse> responseObserver) {
 		//TODO:
-		manager.receiveGossip(request.getTimestampMap(), request.getInstance());
-		GossipTSResponse response = GossipTSResponse.newBuilder().build();
+		System.out.println("Received timestamp '" + request.getTimestampMap() + "' from replica " + request.getInstance());
+		GossipTSResponse response = GossipTSResponse.newBuilder()
+										.setInstance(manager.getInstance()).putAllTimestamp(manager.getTimestamp())
+										.build();
 		responseObserver.onNext(response);
 		responseObserver.onCompleted();
 	}
@@ -178,9 +182,31 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void gossipUpdate(GossipUpdateRequest request, StreamObserver<GossipUpdateResponse> responseObserver) {
 		//TODO:
-		GossipUpdateResponse response = GossipUpdateResponse.newBuilder().build();
-		responseObserver.onNext(response);
-		responseObserver.onCompleted();
+		try {
+			for (OperationMessage opMessage: request.getOperationList()) {
+				if (opMessage.hasCamera()) {
+					System.out.println(opMessage.getCamera());
+					manager.getSiloBackend().camJoin(
+						opMessage.getCamera().getCamName(), opMessage.getCamera().getCoordinates().getLat(),
+						opMessage.getCamera().getCoordinates().getLong());
+					System.out.println("Received Camera " + opMessage.getCamera().getCamName());
+				}
+				else {
+					List<ObservationEntity> obs = new ArrayList<>();
+					obs.add(convertToObsEntity(opMessage.getObservation()));
+					manager.getSiloBackend().report(opMessage.getObservation().getCamName(), obs);
+					System.out.println("Received observation " + opMessage.getObservation().getId());
+				}
+			}
+
+			manager.updateTimestamp(request.getInstance(), request.getTimestampMap().get(request.getInstance()));
+			manager.receiveGossip(request.getTimestampMap(), request.getInstance());
+			GossipUpdateResponse response = GossipUpdateResponse.newBuilder().build();
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
+		} catch (InvalidCameraArguments | CameraNotFoundException | InvalidIdException | InvalidTypeException e) {
+			responseObserver.onError(io.grpc.Status.UNKNOWN.withDescription(e.getMessage()).asRuntimeException());
+		}
 	}
 
 	private Observation convertToObservation(ObservationEntity observation) throws InvalidTypeException {

@@ -11,12 +11,12 @@ public class Camera extends Operation {
     private double latitude;
     private double longitude;
 
-	Camera(String name, double lat, double lon, int opId) throws InvalidCameraArguments {
+	public Camera(String name, double lat, double lon, int opId) throws InvalidCameraArguments {
 		this(name, lat, lon);
 		this.setOpId(opId);
 	}
 
-    Camera(String name, double lat, double lon) throws InvalidCameraArguments {
+    public Camera(String name, double lat, double lon) throws InvalidCameraArguments {
 		super(0, Camera.class.getSimpleName());
 		if ( name == null || name.isEmpty() || name.isBlank()
                 || lat > 90 || lat < -90

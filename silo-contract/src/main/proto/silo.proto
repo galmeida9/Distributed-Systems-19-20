@@ -127,6 +127,8 @@ message GossipTSRequest {
 }
 
 message GossipTSResponse {
+    int32 instance = 1;
+    map<int32, int32> timestamp = 2;
 }
 
 // send timestamp to receive updates
