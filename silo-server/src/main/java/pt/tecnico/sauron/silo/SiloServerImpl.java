@@ -11,7 +11,6 @@ import pt.tecnico.sauron.silo.grpc.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.List;
 
 public class SiloServerImpl extends SiloGrpc.SiloImplBase {
@@ -23,7 +22,12 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	}
 
 	/* Functionality operations */
-
+	
+	/** 
+	 * Execute camJoin request
+	 * @param request
+	 * @param responseObserver
+	 */
 	@Override
 	public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver){
 		try {
@@ -40,6 +44,12 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		}
 	}
 
+	
+	/** 
+	 * Execute camInfo request
+	 * @param request
+	 * @param responseObserver
+	 */
 	@Override
 	public void camInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
 		try {
@@ -57,6 +67,12 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		}
 	}
 
+	
+	/** 
+	 * Execute report request
+	 * @param request
+	 * @param responseObserver
+	 */
 	@Override
 	public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver) {
 		try{
@@ -76,6 +92,12 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		}
 	}
 
+	
+	/** 
+	 * Execute track request
+	 * @param request
+	 * @param responseObserver
+	 */
 	@Override
 	public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
 		try {
@@ -91,6 +113,12 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		}
 	}
 
+	
+	/** 
+	 * Execute trackMatch request
+	 * @param request
+	 * @param responseObserver
+	 */
 	@Override
 	public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver) {
 		try {
@@ -110,6 +138,12 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		}
 	}
 
+	
+	/** 
+	 * Execute trace request
+	 * @param request
+	 * @param responseObserver
+	 */
 	@Override
 	public void trace(TraceRequest request, StreamObserver<TraceResponse> responseObserver) {
 		try{
@@ -126,6 +160,12 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		}
 	}
 
+	
+	/** 
+	 * Execute ctrPing request
+	 * @param request
+	 * @param responseObserver
+	 */
 	/* Control operations */
 
 	@Override
@@ -137,6 +177,12 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		responseObserver.onCompleted();
 	}
 
+	
+	/** 
+	 * Execute ctrlClear request
+	 * @param request
+	 * @param responseObserver
+	 */
 	@Override
 	public void ctrlClear(CtrlClearRequest request, StreamObserver<CtrlClearResponse> responseObserver) {
 		try {
@@ -150,6 +196,12 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		}
 	}
 
+	
+	/** 
+	 * Execute ctrlInit request
+	 * @param request
+	 * @param responseObserver
+	 */
 	@Override
 	public void ctrlInit(CtrlInitRequest request, StreamObserver<CtrlInitResponse> responseObserver) {
 		CtrlInitResponse response = CtrlInitResponse.newBuilder().build();
@@ -157,42 +209,65 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		responseObserver.onCompleted();
 	}
 
+	
+	/** 
+	 * Receive request to start exchanging gossip messages
+	 * @param request
+	 * @param responseObserver
+	 */
 	@Override
 	public void gossipTS(GossipTSRequest request, StreamObserver<GossipTSResponse> responseObserver) {
-		System.out.println("Received timestamp '" + request.getTimestampMap() + "' from replica " + request.getInstance());
-		GossipTSResponse response = GossipTSResponse.newBuilder()
-										.setInstance(manager.getInstance()).putAllTimestamp(manager.getTimestamp())
-										.build();
-		responseObserver.onNext(response);
-		responseObserver.onCompleted();
-	}
-
-	@Override
-	public void gossipUpdate(GossipUpdateRequest request, StreamObserver<GossipUpdateResponse> responseObserver) {
-		try {
-			for (OperationMessage opMessage: request.getOperationList()) {
-				if (opMessage.hasCamera()) {
-					Operation o = manager.getSiloBackend().addCamera(
-						opMessage.getCamera().getCamName(), opMessage.getCamera().getCoordinates().getLat(),
-						opMessage.getCamera().getCoordinates().getLong());
-
-					manager.addOperation(o, o.getInstance());
-				}
-				else if (opMessage.hasObservation()) {
-					ObservationEntity entity = convertToObsEntity(opMessage.getObservation());
-					manager.addOperation(entity.addToStore(manager.getSiloBackend()), entity.getInstance());
-				}
-			}
-			manager.updateTimestamp(request.getInstance(), request.getTimestampMap().get(request.getInstance()));
-
-			GossipUpdateResponse response = GossipUpdateResponse.newBuilder().build();
+		new Thread(() -> {
+			System.out.println("Received timestamp '" + request.getTimestampMap() + "' from replica " + request.getInstance());
+			GossipTSResponse response = GossipTSResponse.newBuilder()
+											.setInstance(manager.getInstance()).putAllTimestamp(manager.getTimestamp())
+											.build();
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
-		} catch (InvalidCameraArguments | CameraNotFoundException | InvalidIdException | InvalidTypeException e) {
-			responseObserver.onError(io.grpc.Status.UNKNOWN.withDescription(e.getMessage()).asRuntimeException());
-		}
+        }).start();
 	}
 
+	
+	/**
+	 * Receive gossip messages to update data in the server 
+	 * @param request
+	 * @param responseObserver
+	 */
+	@Override
+	public void gossipUpdate(GossipUpdateRequest request, StreamObserver<GossipUpdateResponse> responseObserver) {
+		new Thread(() -> {
+			try {
+				for (OperationMessage opMessage: request.getOperationList()) {
+					if (opMessage.hasCamera()) {
+						Operation o = manager.getSiloBackend().addCamera(
+							opMessage.getCamera().getCamName(), opMessage.getCamera().getCoordinates().getLat(),
+							opMessage.getCamera().getCoordinates().getLong());
+	
+						manager.addOperation(o, request.getInstance());
+					}
+					else if (opMessage.hasObservation()) {
+						ObservationEntity entity = convertToObsEntity(opMessage.getObservation());
+						manager.addOperation(entity.addToStore(manager.getSiloBackend()), entity.getInstance());
+					}
+				}
+				manager.updateTimestamp(request.getInstance(), request.getTimestampMap().get(request.getInstance()));
+	
+				GossipUpdateResponse response = GossipUpdateResponse.newBuilder().build();
+				responseObserver.onNext(response);
+				responseObserver.onCompleted();
+			} catch (InvalidCameraArguments | CameraNotFoundException | InvalidIdException | InvalidTypeException e) {
+				responseObserver.onError(io.grpc.Status.UNKNOWN.withDescription(e.getMessage()).asRuntimeException());
+			}
+		}).start();
+	}
+
+	
+	/** 
+	 * Converts ObservationEntity into its grpc equivalent class
+	 * @param observation
+	 * @return Observation
+	 * @throws InvalidTypeException
+	 */
 	private Observation convertToObservation(ObservationEntity observation) throws InvalidTypeException {
 		return Observation.newBuilder()
 						.setType(convertToType(observation.getType()))
@@ -203,6 +278,13 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	}
 
 
+	
+	/** 
+	 * Convert ObservationEntityType into its equivalent grpc class
+	 * @param type
+	 * @return TypeObject
+	 * @throws InvalidTypeException
+	 */
 	private TypeObject convertToType(ObservationEntity.ObservationEntityType type) throws InvalidTypeException {
 		switch (type) {
 			case PERSON:
@@ -214,6 +296,13 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		}
 	}
 
+	
+	/** 
+	 * Convert TypeObject from grpc into domain specific class, ObservationEntityType
+	 * @param type
+	 * @return ObservationEntityType
+	 * @throws InvalidTypeException
+	 */
 	private ObservationEntity.ObservationEntityType convertToObsEntityType(TypeObject type) throws InvalidTypeException {
 		switch (type) {
 			case PERSON:
@@ -225,12 +314,25 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 		}
 	}
 
+	
+	/** 
+	 * Convert Observation from grpc into domain specific class, ObservationEntity
+	 * @param obs
+	 * @return ObservationEntity
+	 * @throws InvalidTypeException
+	 */
 	private ObservationEntity convertToObsEntity(Observation obs) throws InvalidTypeException {
 		return new ObservationEntity(convertToObsEntityType(obs.getType()),
 				obs.getId(),
 				obs.getCamName());
 	}
 
+	
+	/** 
+	 * Convert LocalDateTime into google's Timestamp
+	 * @param date
+	 * @return Timestamp
+	 */
 	private Timestamp convertToTimeStamp(LocalDateTime date) {
 		return Timestamp.newBuilder().setSeconds(date.toEpochSecond(ZoneOffset.UTC))
 									.setNanos(date.getNano())

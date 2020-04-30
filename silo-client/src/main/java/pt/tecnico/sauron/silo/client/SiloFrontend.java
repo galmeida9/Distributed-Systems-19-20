@@ -65,7 +65,11 @@ public class SiloFrontend {
         if (channel != null) channel.shutdown();
     }
 
-    // Get a list of the valid types for the observations
+    
+    /** 
+     * Get a list of the valid types for the observations
+     * @return List<String>
+     */
     public static List<String> getValidTypes(){
         List<String> res = new ArrayList<>();
         for (TypeObject t : TypeObject.values()) res.add(t.toString().toLowerCase());
@@ -77,6 +81,10 @@ public class SiloFrontend {
     */
     private static final boolean DEBUG_FLAG = "true".equals(System.getenv("debug"));
 
+    
+    /** 
+     * @param debugMessage
+     */
     private static void debug(String debugMessage){
         if (DEBUG_FLAG)
             System.err.println(debugMessage);
@@ -86,7 +94,14 @@ public class SiloFrontend {
     *   Public methods - server related
     */
 
-
+    /** 
+     * Sends camJoin request to server
+     * @param camName
+     * @param lat
+     * @param lon
+     * @throws InvalidCameraArgumentsException
+     * @throws FailedConnectionException
+     */
     public void camJoin(String camName, double lat, double lon) throws InvalidCameraArgumentsException, FailedConnectionException {
         try {
             Coordinates coords = Coordinates.newBuilder().setLat(lat).setLong(lon).build();
@@ -100,6 +115,14 @@ public class SiloFrontend {
         }
     }
 
+    
+    /** 
+     * Sends camInfo request to server
+     * @param camName
+     * @return String
+     * @throws CameraNotFoundException
+     * @throws FailedConnectionException
+     */
     public String camInfo(String camName) throws CameraNotFoundException, FailedConnectionException {
         try {
             CamInfoResponse response = stub.camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
@@ -117,6 +140,14 @@ public class SiloFrontend {
 
     }
 
+    
+    /** 
+     * Send report request to server
+     * @param observations
+     * @throws InvalidTypeException
+     * @throws ReportException
+     * @throws FailedConnectionException
+     */
     public void report(List<ObservationObject> observations) throws InvalidTypeException, ReportException, FailedConnectionException {
         try{
             ReportRequest.Builder request = ReportRequest.newBuilder();
@@ -135,6 +166,16 @@ public class SiloFrontend {
         }
     }
 
+    
+    /** 
+     * Send track request to server
+     * @param type
+     * @param id
+     * @return ObservationObject
+     * @throws InvalidTypeException
+     * @throws NoObservationsFoundException
+     * @throws FailedConnectionException
+     */
     public ObservationObject track(String type, String id) throws InvalidTypeException, NoObservationsFoundException, FailedConnectionException {
         try{
             TypeObject enumType = getTypeFromStr(type);
@@ -146,6 +187,16 @@ public class SiloFrontend {
         }
     }
     
+    
+    /** 
+     * Send trackMatch request to server
+     * @param type
+     * @param partId
+     * @return List<ObservationObject>
+     * @throws InvalidTypeException
+     * @throws NoObservationsFoundException
+     * @throws FailedConnectionException
+     */
     public List<ObservationObject> trackMatch(String type, String partId)
             throws InvalidTypeException, NoObservationsFoundException, FailedConnectionException {
         try {
@@ -162,6 +213,16 @@ public class SiloFrontend {
         }
     }
 
+    
+    /** 
+     * Send trace request to server
+     * @param type
+     * @param id
+     * @return List<ObservationObject>
+     * @throws InvalidTypeException
+     * @throws NoObservationsFoundException
+     * @throws FailedConnectionException
+     */
     public List<ObservationObject> trace(String type, String id)
             throws InvalidTypeException, NoObservationsFoundException, FailedConnectionException {
         try {
@@ -183,6 +244,12 @@ public class SiloFrontend {
     *   Control operations
     */
 
+    /** 
+     * Send ctrlPing request to server
+     * @param input
+     * @return String
+     * @throws FailedConnectionException
+     */
     public String ctrlPing(String input) throws FailedConnectionException {
         try {
             CtrlPingRequest request = CtrlPingRequest.newBuilder().setInput(input).build();
@@ -194,6 +261,12 @@ public class SiloFrontend {
         }
     }
 
+    
+    /** 
+     * Send ctrlClear request to server
+     * @throws CannotClearServerException
+     * @throws FailedConnectionException
+     */
     public void ctrlClear() throws CannotClearServerException, FailedConnectionException {
         try {
             CtrlClearResponse.newBuilder().build();
@@ -203,6 +276,11 @@ public class SiloFrontend {
         }
     }
 
+    
+    /** 
+     * Send ctrlInit request to server
+     * @throws FailedConnectionException
+     */
     public void ctrlInit() throws FailedConnectionException {
         try {
             CtrlClearResponse.newBuilder().build();
@@ -211,27 +289,50 @@ public class SiloFrontend {
         }
     }
 
+    
     /*
     *   Auxiliary functions
     */
 
-    // Converts com.google.protobuf.TimeStamp in LocalDateTime
+    /** 
+     * Converts com.google.protobuf.TimeStamp in LocalDateTime
+     * @param ts
+     * @return LocalDateTime
+     */
     private LocalDateTime convertToLocalDateTime(Timestamp ts) {
         return LocalDateTime.ofEpochSecond(ts.getSeconds(), ts.getNanos(), ZoneOffset.UTC);
     }
 
-    // Converts lists of grpc Observation in list of ObservationObject
+    
+    /** 
+     * Converts lists of grpc Observation in list of ObservationObject
+     * @param oldObs
+     * @return List<ObservationObject>
+     */
     private List<ObservationObject> convertObservationList(List<Observation> oldObs){
         return oldObs.stream()
                 .map(x -> convertObservation(x))
                 .collect(Collectors.toList());
     }
 
+    
+    /** 
+     * Converts grpc Observation to ObservationObject, client's equivalent class
+     * @param obs
+     * @return ObservationObject
+     */
     private ObservationObject convertObservation(Observation obs) {
         return new ObservationObject(getStrFromType(obs.getType()), obs.getId(), 
                                     convertToLocalDateTime(obs.getDateTime()), obs.getCamName());
     }
 
+    
+    /** 
+     * Converts a type from a String into a TypeObject
+     * @param type
+     * @return TypeObject
+     * @throws InvalidTypeException
+     */
     private TypeObject getTypeFromStr(String type) throws InvalidTypeException {
         switch (type){
             case "person":
@@ -243,11 +344,23 @@ public class SiloFrontend {
         }
     }
 
+    
+    /** 
+     * Converts TypeObject class into string
+     * @param type
+     * @return String
+     */
     private String getStrFromType(TypeObject type) {
         if (type == TypeObject.PERSON) return "person";
         return "car";
     }
 
+    
+    /** 
+     * Checks connection with the server
+     * @param s
+     * @throws FailedConnectionException
+     */
     private void checkConnection(Status s) throws FailedConnectionException {
         if (s.getCode().equals(Status.UNAVAILABLE.getCode())) {
             throw new FailedConnectionException("Server is unavailable.");

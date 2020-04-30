@@ -18,14 +18,39 @@ class SiloBackend implements OperationStore {
         camRepo = new CameraRepository();
     }
 
+    
+    /** 
+     * Displays given camera's coordinates
+     * @param id
+     * @return List<Double>
+     * @throws CameraNotFoundException
+     */
     public List<Double> camInfo(String id) throws CameraNotFoundException {
         return camRepo.getCameraInfo(id);
     }
 
+    
+    /** 
+     * Adds a camera to the server
+     * @param id
+     * @param lat
+     * @param lon
+     * @return Operation
+     * @throws InvalidCameraArguments
+     */
     public Operation addCamera(String id, double lat, double lon) throws InvalidCameraArguments {
         return camRepo.addCamera(id, lat, lon);
     }
 
+    
+    /** 
+     * Adds an observation to the server
+     * @param camName
+     * @param obs
+     * @return List<Operation>
+     * @throws CameraNotFoundException
+     * @throws InvalidIdException
+     */
     public List<Operation> addObservation(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
         camRepo.getCamera(camName);
         List<Operation> operations = new ArrayList<>();
@@ -37,6 +62,13 @@ class SiloBackend implements OperationStore {
         return operations;
     }
 
+    
+    /** 
+     * Checks if a given id complies to the our specification
+     * @param type
+     * @param id
+     * @throws InvalidIdException
+     */
     private void checkId(ObservationEntityType type, String id) throws InvalidIdException {
         if (id == null || id.isEmpty() || id.isBlank()) {
             throw new InvalidIdException("Id cannot be null, empty or blank.");
@@ -61,6 +93,15 @@ class SiloBackend implements OperationStore {
     }
 
 
+    
+    /** 
+     * Shows most recent observation of a given entity
+     * @param type
+     * @param id
+     * @return ObservationEntity
+     * @throws InvalidIdException
+     * @throws NoObservationsException
+     */
     public ObservationEntity track(ObservationEntityType type, String id) throws InvalidIdException, NoObservationsException {
         checkId(type, id);
         List<ObservationEntity> obs = obsRepo.getObservations(type, id);
@@ -72,6 +113,15 @@ class SiloBackend implements OperationStore {
         throw new NoObservationsException("No observations found for " + id);
     }
 
+    
+    /** 
+     * Shows the most recent observation for all the entities matching the given id and type
+     * @param type
+     * @param partId
+     * @return List<ObservationEntity>
+     * @throws InvalidIdException
+     * @throws NoObservationsException
+     */
     public List<ObservationEntity> trackMatch(ObservationEntityType type, String partId)
             throws InvalidIdException, NoObservationsException {
         List<ObservationEntity> matches = new ArrayList<>();
@@ -86,6 +136,14 @@ class SiloBackend implements OperationStore {
         return matches;
     }
 
+    
+    /** 
+     * Gets all the observations for a given entity
+     * @param type
+     * @param id
+     * @return List<ObservationEntity>
+     * @throws InvalidIdException
+     */
     public List<ObservationEntity> trace(ObservationEntityType type, String id) throws InvalidIdException {
         checkId(type, id);
         List<ObservationEntity> obs = obsRepo.getObservations(type, id);
@@ -94,6 +152,11 @@ class SiloBackend implements OperationStore {
         return obs;
     }
 
+    
+    /** 
+     * Clears all the data from the server
+     * @throws CannotClearServerException
+     */
     public void ctrlClear() throws CannotClearServerException {
         obsRepo.clear();
         camRepo.clear();
