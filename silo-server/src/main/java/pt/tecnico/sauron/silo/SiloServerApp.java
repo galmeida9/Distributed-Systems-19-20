@@ -31,9 +31,14 @@ public class SiloServerApp {
 		final String host = args[2];
 		final String port = args[3];
 		final int instance = Integer.parseInt(args[4]);
+		final int retry;
+		if (args.length > 5)
+			retry = Integer.parseInt(args[5]);
+		else 
+			retry = 30000;
 		final String root = "/grpc/sauron/silo";
 		final String path = root + '/' + Integer.toString(instance);
-		final BindableService impl = new SiloServerImpl(instance, root, zooHost, zooPort);
+		final BindableService impl = new SiloServerImpl(instance, root, zooHost, zooPort, retry);
 		ZKNaming zkNaming = null;
 
 		try {

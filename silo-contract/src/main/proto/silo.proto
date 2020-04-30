@@ -139,9 +139,7 @@ message GossipUpdateRequest {
 }
 
 message GossipUpdateResponse {
-    int32 instance = 1;
-    map<int32, int32> timestamp = 2;
-    repeated OperationMessage operation = 3;
+    // No arguments
 }
 
 // service

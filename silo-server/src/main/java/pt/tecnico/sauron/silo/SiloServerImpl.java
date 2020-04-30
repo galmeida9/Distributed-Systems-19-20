@@ -17,8 +17,8 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	private SiloGossipManager manager;
 
-	public SiloServerImpl(int instance, String path, String zooHost, String zooPort) {
-		manager = new SiloGossipManager(instance, path, zooHost, zooPort);
+	public SiloServerImpl(int instance, String path, String zooHost, String zooPort, int retry) {
+		manager = new SiloGossipManager(instance, path, zooHost, zooPort, retry);
 	}
 
 	/* Functionality operations */
@@ -176,9 +176,9 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void gossipUpdate(GossipUpdateRequest request, StreamObserver<GossipUpdateResponse> responseObserver) {
 		try {
+			List<ObservationEntity> obs = new ArrayList<>();
 			for (OperationMessage opMessage: request.getOperationList()) {
 				if (opMessage.hasCamera()) {
-					System.out.println(opMessage.getCamera());
 					Operation o = manager.getSiloBackend().camJoin(
 						opMessage.getCamera().getCamName(), opMessage.getCamera().getCoordinates().getLat(),
 						opMessage.getCamera().getCoordinates().getLong());
@@ -186,13 +186,13 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 					manager.addOperation(o, request.getInstance());
 				}
 				else if (opMessage.hasObservation()) {
-					List<ObservationEntity> obs = new ArrayList<>();
 					obs.add(convertToObsEntity(opMessage.getObservation()));
-					//FIXME: Shouldn't it report only one time?
-					for (Operation o: manager.getSiloBackend().report(opMessage.getObservation().getCamName(), obs))
-						manager.addOperation(o, request.getInstance());
 				}
 			}
+
+			if (!obs.isEmpty())
+				for (Operation o: manager.getSiloBackend().report(obs.get(0).getCamName(), obs))
+					manager.addOperation(o, request.getInstance());
 
 			manager.updateTimestamp(request.getInstance(), request.getTimestampMap().get(request.getInstance()));
 

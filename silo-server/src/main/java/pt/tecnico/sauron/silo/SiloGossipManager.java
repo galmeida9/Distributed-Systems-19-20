@@ -25,8 +25,9 @@ public class SiloGossipManager {
     private String root;
     private String currentPath;
     private ZKNaming zkNaming;
+    private int numbOfRetries = 0;
 
-    public SiloGossipManager(int instance, String root, String zooHost, String zooPort) {
+    public SiloGossipManager(int instance, String root, String zooHost, String zooPort, int retry) {
         this.instance = instance;
         this.root = root;
         this.currentPath = root + '/' + Integer.toString(instance);
@@ -42,7 +43,7 @@ public class SiloGossipManager {
                     propagateGossip();
                 }
             };
-            timer.schedule(gossip, 30000, 30000);
+            timer.schedule(gossip, retry, retry);
         }).start();
     }
 
@@ -115,19 +116,17 @@ public class SiloGossipManager {
      * Propagates updates from this replica to all the other replicas
      */
     public void propagateGossip() {
+        if (numbOfRetries == 3) {
+            System.out.println("Could not establish a connection to the other server, try again later.");
+            System.exit(1);
+        }
+
         System.out.println("Replica " + instance + " starting gossip");
         try {
             Collection<ZKRecord> servers = zkNaming.listRecords(root);
             if (servers.isEmpty()) {
-                System.out.println("Could not find other replicas, retrying in 30 seconds.");
-                new Timer().schedule(new TimerTask(){
-                
-                    @Override
-                    public void run() {
-                        propagateGossip();
-                        
-                    }
-                }, 30000);
+                System.out.println("Could not connect other replicas, retrying in 30 seconds.");
+                numbOfRetries++;
             }
 
             System.out.println("Replica " + instance + " initiating gossip...");
@@ -153,6 +152,7 @@ public class SiloGossipManager {
                     System.out.println("Received answer " + response.getTimestampMap());
                     channel.shutdown();
                     receiveGossip(response.getTimestampMap(), response.getInstance());
+                    numbOfRetries = 0;
                 } catch (StatusRuntimeException | InvalidTypeException e) {
                     System.out.println("Caught exception '" + e.getMessage() +
                             "' when trying to contact " + zkRecord.toString() + " at " + target);
@@ -161,8 +161,8 @@ public class SiloGossipManager {
             }
         }
         catch (ZKNamingException e) {
-            //FIXME: Again, should not happen, but if it does...
-            e.printStackTrace();
+            System.out.println("Caught an exception while trying to communicate with the other replicas, trying again in 30 seconds: " + e.getMessage());
+            numbOfRetries++;
         }
     }
 
@@ -194,7 +194,6 @@ public class SiloGossipManager {
                                                                 .putAllTimestamp(timestamp)
                                                                 .addAllOperation(opsToSend)
                                                                 .build();
-            //FIXME: Shouldn't we treat the response?
             stub.gossipUpdate(request);
             channel.shutdown();
         } catch (StatusRuntimeException | ZKNamingException e) {
@@ -273,5 +272,6 @@ public class SiloGossipManager {
     public Timestamp convertToTimeStamp(LocalDateTime date) {
 		return Timestamp.newBuilder().setSeconds(date.toEpochSecond(ZoneOffset.UTC))
 									.setNanos(date.getNano()).build();
-	}
+    }
+
 }
