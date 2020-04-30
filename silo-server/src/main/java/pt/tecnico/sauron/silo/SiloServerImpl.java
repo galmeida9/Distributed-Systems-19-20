@@ -31,9 +31,6 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 					.camJoin(request.getCamName(), request.getCoordinates().getLat(), request.getCoordinates().getLong());
 			manager.addOperation(o);
 
-			//FIXME: Remove, only for test
-			manager.propagateGossip();
-
 			CamJoinResponse response = CamJoinResponse.newBuilder().build();
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
@@ -74,8 +71,6 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			for (Operation o: operations) {
 				manager.addOperation(o);
 			}
-
-			manager.propagateGossip();
 
 			ReportResponse response = ReportResponse.newBuilder().build();
 			responseObserver.onNext(response);
@@ -170,7 +165,6 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void gossipTS(GossipTSRequest request, StreamObserver<GossipTSResponse> responseObserver) {
-		//TODO:
 		System.out.println("Received timestamp '" + request.getTimestampMap() + "' from replica " + request.getInstance());
 		GossipTSResponse response = GossipTSResponse.newBuilder()
 										.setInstance(manager.getInstance()).putAllTimestamp(manager.getTimestamp())
@@ -181,7 +175,6 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 
 	@Override
 	public void gossipUpdate(GossipUpdateRequest request, StreamObserver<GossipUpdateResponse> responseObserver) {
-		//TODO:
 		try {
 			for (OperationMessage opMessage: request.getOperationList()) {
 				if (opMessage.hasCamera()) {
@@ -200,7 +193,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			}
 
 			manager.updateTimestamp(request.getInstance(), request.getTimestampMap().get(request.getInstance()));
-			manager.receiveGossip(request.getTimestampMap(), request.getInstance());
+			// manager.receiveGossip(request.getTimestampMap(), request.getInstance());
 			GossipUpdateResponse response = GossipUpdateResponse.newBuilder().build();
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();

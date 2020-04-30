@@ -15,6 +15,8 @@ import pt.ulisboa.tecnico.sdis.zk.ZKRecord;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class SiloGossipManager {
     private SiloBackend siloBackend = new SiloBackend();
@@ -35,6 +37,14 @@ public class SiloGossipManager {
         this.zooPort = zooPort;
         timestamp.put(instance, 0);
         this.zkNaming = new ZKNaming(zooHost, zooPort);
+
+        final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+        executor.schedule(new Runnable() {
+            @Override
+            public void run() {
+                propagateGossip();
+            }
+        }, 30, TimeUnit.SECONDS);
     }
 
     /**
@@ -165,6 +175,14 @@ public class SiloGossipManager {
             //FIXME: Again, should not happen, but if is does...
             e.printStackTrace();
         }
+
+        final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+        executor.schedule(new Runnable() {
+            @Override
+            public void run() {
+                propagateGossip();
+            }
+        }, 30, TimeUnit.SECONDS);
     }
 
     /**
@@ -175,9 +193,6 @@ public class SiloGossipManager {
      * @param otherInstance
      */
     public void receiveGossip(Map<Integer, Integer> otherTimestamp, int otherInstance) throws InvalidTypeException {
-        //FIXME: Check if a replica only sends updates from itself or from other replicas
-        //FIXME: maybe join asking for update and sending update
-
         // Check if other replica needs update from this replica
         if ( !(otherTimestamp.containsKey(instance)) || ( otherTimestamp.get(instance) < timestamp.get(instance))) {
             
