@@ -34,6 +34,8 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void camJoin(CamJoinRequest request, StreamObserver<CamJoinResponse> responseObserver){
 		try {
+			if (Context.current().isCancelled())
+				return;
 			Operation o = manager.getSiloBackend()
 					.addCamera(request.getCamName(), request.getCoordinates().getLat(), request.getCoordinates().getLong());
 			manager.addOperation(o, manager.getInstance());
@@ -55,6 +57,8 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void camInfo(CamInfoRequest request, StreamObserver<CamInfoResponse> responseObserver) {
 		try {
+			if (Context.current().isCancelled())
+				return;
 			List<Double> listCoords = manager.getSiloBackend().camInfo(request.getCamName());
 			Coordinates coords = Coordinates.newBuilder()
 				.setLat(listCoords.get(0))
@@ -78,6 +82,8 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void report(ReportRequest request, StreamObserver<ReportResponse> responseObserver) {
 		try{
+			if (Context.current().isCancelled())
+				return;
 			List<Observation> obs = request.getObservationList();
 			for (Observation observation : obs){
 				ObservationEntity observationEntity = convertToObsEntity(observation);
@@ -103,6 +109,8 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void track(TrackRequest request, StreamObserver<TrackResponse> responseObserver) {
 		try {
+			if (Context.current().isCancelled())
+				return;
 			ObservationEntity obs = manager.getSiloBackend().track(convertToObsEntityType(request.getType()), request.getId());
 			Observation obsResponse = convertToObservation(obs);
 			TrackResponse response = TrackResponse.newBuilder().setObservation(obsResponse).build();
@@ -124,6 +132,8 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void trackMatch(TrackMatchRequest request, StreamObserver<TrackMatchResponse> responseObserver) {
 		try {
+			if (Context.current().isCancelled())
+				return;
 			List<ObservationEntity> obs = manager.getSiloBackend().trackMatch(convertToObsEntityType(request.getType()), request.getPartialId());
 			TrackMatchResponse.Builder response = TrackMatchResponse.newBuilder();
 
@@ -149,6 +159,8 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 	@Override
 	public void trace(TraceRequest request, StreamObserver<TraceResponse> responseObserver) {
 		try{
+			if (Context.current().isCancelled())
+				return;
 			List<ObservationEntity> obs = manager.getSiloBackend().trace(convertToObsEntityType(request.getType()), request.getId());
 			TraceResponse.Builder response = TraceResponse.newBuilder();
 

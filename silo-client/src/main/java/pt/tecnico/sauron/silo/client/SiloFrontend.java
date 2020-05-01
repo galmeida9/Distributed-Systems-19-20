@@ -1,21 +1,24 @@
 package pt.tecnico.sauron.silo.client;
 
+import com.google.protobuf.Timestamp;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.client.exceptions.*;
 import pt.tecnico.sauron.silo.grpc.*;
-
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.google.protobuf.Timestamp;
 import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
 import pt.ulisboa.tecnico.sdis.zk.ZKNamingException;
 import pt.ulisboa.tecnico.sdis.zk.ZKRecord;
+
+import java.lang.reflect.Method;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class SiloFrontend {
 
@@ -23,11 +26,16 @@ public class SiloFrontend {
     private SiloGrpc.SiloBlockingStub stub;
     private ZKNaming zkNaming;
     private ZKRecord record;
+    private int retries = 0;
+    private int retryTime = 10000;
 
     public SiloFrontend(String zooHost, String zooPort, int instance) throws FailedConnectionException {
-        String path = "/grpc/sauron/silo";
         zkNaming = new ZKNaming(zooHost, zooPort);
+        connectToServer(instance);
+    }
 
+    private void connectToServer(int instance) throws FailedConnectionException {
+        String path = "/grpc/sauron/silo";
         if (instance >= 0) {
             path = path + '/' + Integer.toString(instance);
             try {
@@ -105,12 +113,19 @@ public class SiloFrontend {
     public void camJoin(String camName, double lat, double lon) throws InvalidCameraArgumentsException, FailedConnectionException {
         try {
             Coordinates coords = Coordinates.newBuilder().setLat(lat).setLong(lon).build();
-            stub.camJoin(CamJoinRequest.newBuilder().setCamName(camName).setCoordinates(coords).build());
+            stub.withDeadlineAfter(retryTime, TimeUnit.MILLISECONDS)
+                .camJoin(CamJoinRequest.newBuilder().setCamName(camName).setCoordinates(coords).build());
+            retries = 0;
         }
         catch (NullPointerException e) {
             throw new InvalidCameraArgumentsException(e.getMessage());
         } catch (StatusRuntimeException e) {
             checkConnection(e.getStatus());
+            try {
+                increaseRetries(SiloFrontend.class.getMethod("camJoin", String.class, Double.class, Double.class), this, camName, lat, lon);
+            } catch (NoSuchMethodException ex) {
+                // impossible
+            }
             throw new InvalidCameraArgumentsException(e.getMessage());
         }
     }
@@ -125,7 +140,9 @@ public class SiloFrontend {
      */
     public String camInfo(String camName) throws CameraNotFoundException, FailedConnectionException {
         try {
-            CamInfoResponse response = stub.camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
+            CamInfoResponse response = stub.withDeadlineAfter(retryTime, TimeUnit.MILLISECONDS)
+                                            .camInfo(CamInfoRequest.newBuilder().setCamName(camName).build());
+            retries = 0;
             double lat = response.getCoordinates().getLat();
             double lon = response.getCoordinates().getLong();
             return lat + "," + lon;
@@ -135,6 +152,11 @@ public class SiloFrontend {
         }
         catch (StatusRuntimeException e) {
             checkConnection(e.getStatus());
+            try {
+                increaseRetries(SiloFrontend.class.getMethod("camInfo", String.class), this, camName);
+            } catch (NoSuchMethodException ex) {
+                // impossible
+            }
             throw new CameraNotFoundException(e.getMessage());
         }
 
@@ -159,9 +181,16 @@ public class SiloFrontend {
                         .setCamName(observation.getCamName()));
             }
 
-            stub.report(request.build());
+            stub.withDeadlineAfter(retryTime, TimeUnit.MILLISECONDS).report(request.build());
+            retries = 0;
         } catch (StatusRuntimeException e){
             checkConnection(e.getStatus());
+            try {
+                System.out.println("retrying");
+                increaseRetries(SiloFrontend.class.getMethod("report", List.class), this, observations);
+            } catch (NoSuchMethodException ex) {
+                // impossible
+            }
             throw new ReportException(e.getMessage());
         }
     }
@@ -179,10 +208,17 @@ public class SiloFrontend {
     public ObservationObject track(String type, String id) throws InvalidTypeException, NoObservationsFoundException, FailedConnectionException {
         try{
             TypeObject enumType = getTypeFromStr(type);
-            TrackResponse response = stub.track(TrackRequest.newBuilder().setType(enumType).setId(id).build());
+            TrackResponse response = stub.withDeadlineAfter(retryTime, TimeUnit.MILLISECONDS)
+                                            .track(TrackRequest.newBuilder().setType(enumType).setId(id).build());
+            retries = 0;                                            
             return convertObservation(response.getObservation());
         } catch (StatusRuntimeException e) {
             checkConnection(e.getStatus());
+            try {
+                increaseRetries(SiloFrontend.class.getMethod("track", String.class, String.class), this, type, id);
+            } catch (NoSuchMethodException ex) {
+                // impossible
+            }
             throw new NoObservationsFoundException(e.getMessage());
         }
     }
@@ -204,11 +240,17 @@ public class SiloFrontend {
 
             request.setType(getTypeFromStr(type));
             request.setPartialId(partId);        
-            TrackMatchResponse response = stub.trackMatch(request.build());
+            TrackMatchResponse response = stub.withDeadlineAfter(retryTime, TimeUnit.MILLISECONDS).trackMatch(request.build());
+            retries = 0;
         
             return convertObservationList(response.getObservationList());
         } catch (StatusRuntimeException e) {
             checkConnection(e.getStatus());
+            try {
+                increaseRetries(SiloFrontend.class.getMethod("trackMatch", String.class, String.class), this, type, partId);
+            } catch (NoSuchMethodException ex) {
+                // impossible
+            }
             throw new NoObservationsFoundException(e.getMessage());
         }
     }
@@ -231,11 +273,17 @@ public class SiloFrontend {
             request.setType(getTypeFromStr(type));
             request.setId(id);
         
-            TraceResponse response = stub.trace(request.build());
+            TraceResponse response = stub.withDeadlineAfter(retryTime, TimeUnit.MILLISECONDS).trace(request.build());
+            retries = 0;
 
             return convertObservationList(response.getObservationList());
         } catch (StatusRuntimeException e) {
             checkConnection(e.getStatus());
+            try {
+                increaseRetries(SiloFrontend.class.getMethod("trace", String.class, String.class), this, type, id);
+            } catch (NoSuchMethodException ex) {
+                // impossible
+            }
             throw new NoObservationsFoundException(e.getMessage());
         }
     }
@@ -253,10 +301,16 @@ public class SiloFrontend {
     public String ctrlPing(String input) throws FailedConnectionException {
         try {
             CtrlPingRequest request = CtrlPingRequest.newBuilder().setInput(input).build();
-            CtrlPingResponse response = stub.ctrlPing(request);
+            CtrlPingResponse response = stub.withDeadlineAfter(retryTime, TimeUnit.MILLISECONDS).ctrlPing(request);
+            retries = 0;
             return response.getOutput();
         } catch (StatusRuntimeException e) {
             checkConnection(e.getStatus());
+            try {
+                increaseRetries(SiloFrontend.class.getMethod("ctrlPing", String.class), this, input);
+            } catch (NoSuchMethodException ex) {
+                // impossible
+            }
             throw new FailedConnectionException("Failed to connect to server.");
         }
     }
@@ -364,6 +418,18 @@ public class SiloFrontend {
     private void checkConnection(Status s) throws FailedConnectionException {
         if (s.getCode().equals(Status.UNAVAILABLE.getCode())) {
             throw new FailedConnectionException("Server is unavailable.");
+        }
+    }
+
+    private void increaseRetries(Method func, SiloFrontend frontend , Object... args) throws FailedConnectionException {
+        retries++;
+        try {
+            if (retries == 3)
+                connectToServer(-1);
+            else 
+                func.invoke(frontend, args);
+        } catch (Exception e) {
+            throw new FailedConnectionException("Failed to retry request.");
         }
     }
 }

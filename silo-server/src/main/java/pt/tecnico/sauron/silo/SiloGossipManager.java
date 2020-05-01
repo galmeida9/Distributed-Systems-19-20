@@ -241,7 +241,7 @@ public class SiloGossipManager {
      * @param status
      */
     void checkGossipException(Status status, String instance) {
-        String error = "Unknown error";
+        String error;
         if (status.getCode() == Status.CANCELLED.getCode())
             error = "Timed out";
         else if (status.getCode() == Status.DEADLINE_EXCEEDED.getCode())
