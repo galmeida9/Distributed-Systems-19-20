@@ -2,7 +2,6 @@
 
 Sistemas Distribuídos 2019-2020, segundo semestre
 
-
 ## Autores
   
 **Grupo A09** 
@@ -13,8 +12,7 @@ Sistemas Distribuídos 2019-2020, segundo semestre
 | 89446  | Gabriel Almeida      | <https://github.com/galmeida9>    | <mailto:gabriel.almeida@tecnico.ulisboa.pt>       |
 | 91004  | Daniel Gonçalves     | <https://github.com/masterzeus05> | <mailto:daniel.a.goncalves@tecnico.ulisboa.pt>    |
 
-*(usar imagens com 150px de altura; e depois apagar esta linha)*  
-![Alice](alice.png) ![Bob](bob.png) ![Charlie](charlie.png)
+![Catarina](catarina.png) ![Gabriel](gabriel.png) ![Daniel](daniel.png)
 
 
 ## Melhorias da primeira parte
