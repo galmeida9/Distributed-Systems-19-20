@@ -52,7 +52,6 @@ class SiloBackend implements OperationStore {
      * @throws InvalidIdException
      */
     public List<Operation> addObservation(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
-        camRepo.getCamera(camName);
         List<Operation> operations = new ArrayList<>();
         for (ObservationEntity observation : obs){
             checkId(observation.getType(), observation.getId());

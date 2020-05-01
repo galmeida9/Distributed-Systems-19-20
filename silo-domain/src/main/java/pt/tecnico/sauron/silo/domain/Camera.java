@@ -21,8 +21,9 @@ public class Camera extends Operation {
 	 */
     public Camera(String name, double lat, double lon) throws InvalidCameraArguments {
 		super(Camera.class.getSimpleName());
-		if ( name == null || name.isEmpty() || name.isBlank()
-                || lat > 90 || lat < -90
+		if ( name == null || name.isEmpty() || name.isBlank() || name.length() < 3 || name.length() > 15)
+			throw new InvalidCameraArguments("Invalid camera name.");
+		if (lat > 90 || lat < -90
                 || lon > 90 || lon < -90
                 || Double.isNaN(lat) || Double.isNaN(lon)
                 || Double.isInfinite(lat) || Double.isInfinite(lon))
