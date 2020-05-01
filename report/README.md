@@ -17,14 +17,24 @@ Sistemas Distribuídos 2019-2020, segundo semestre
 
 ## Melhorias da primeira parte
 
-_(que correções ou melhorias foram feitas ao código da primeira parte -- incluir link para commits no GitHub onde a alteração foi feita)_
-
-- [descrição da alteração](https://github.com/tecnico-distsys/CXX-Sauron/commit/156e1ac25798e2360b362b3a8fc474f7cfe64d01)
-
+- [Testes do `cam_join` para limites inferiores e superiores](https://github.com/tecnico-distsys/A09-Sauron/commit/b656a724d092cfff34f1389078657b251da2bef7)
+- [Testes de sucesso para o `report` e `track`](https://github.com/tecnico-distsys/A09-Sauron/commit/b656a724d092cfff34f1389078657b251da2bef7)
+- [Utilização do Status do GRPC](https://github.com/tecnico-distsys/A09-Sauron/commit/b656a724d092cfff34f1389078657b251da2bef7)
+- [Criação de um módulo para o domínio, com a criação de classes](https://github.com/tecnico-distsys/A09-Sauron/commit/b656a724d092cfff34f1389078657b251da2bef7)
+- [Métodos enviam exceções em caso de erro](https://github.com/tecnico-distsys/A09-Sauron/commit/b656a724d092cfff34f1389078657b251da2bef7)
+- [Erros no servidor são enviados em exceções para o cliente](https://github.com/tecnico-distsys/A09-Sauron/commit/b656a724d092cfff34f1389078657b251da2bef7)
+- [Utilização correta de estruturas concorrentes](https://github.com/tecnico-distsys/A09-Sauron/commit/55b2f3139079c287b379dad2216786e16ecf4bb4)
 
 ## Modelo de faltas
 
-_(que faltas são toleradas, que faltas não são toleradas)_
+Faltas toleradas
+- Uma réplica falhar entre mensagens de um cliente
+- Uma réplica falhar entre mensagens de outra réplica
+- Endereços de réplicas inválidos
+- Gestor de réplicas não dar nenhuma réplica
+
+Faltas não toleradas
+- Gestor de réplicas não aceitar réplicas
 
 
 ## Solução
