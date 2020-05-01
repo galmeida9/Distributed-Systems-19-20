@@ -15,8 +15,9 @@ enum TypeObject {
 // Operation
 message OperationMessage {
     int32 operationId = 1;
-    Observation observation = 2;
-    CamJoinRequest camera = 3;
+    int32 instance = 2;
+    Observation observation = 3;
+    CamJoinRequest camera = 4;
 }
 
 // observation

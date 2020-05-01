@@ -3,6 +3,7 @@ package pt.tecnico.sauron.silo;
 import com.google.protobuf.Timestamp;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import pt.tecnico.sauron.silo.domain.Camera;
 import pt.tecnico.sauron.silo.domain.ObservationEntity;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class SiloGossipManager {
     private SiloBackend siloBackend = new SiloBackend();
@@ -26,13 +28,15 @@ public class SiloGossipManager {
     private String currentPath;
     private ZKNaming zkNaming;
     private int numbOfRetries = 0;
+    private int gossipInterval;
 
-    public SiloGossipManager(int instance, String root, String zooHost, String zooPort, int retry) {
+    public SiloGossipManager(int instance, String root, String zooHost, String zooPort, int gossipInterval) {
         this.instance = instance;
         this.root = root;
         this.currentPath = root + '/' + Integer.toString(instance);
         timestamp.put(instance, 0);
         this.zkNaming = new ZKNaming(zooHost, zooPort);
+        this.gossipInterval = gossipInterval;
 
         // Create new thread where we propagate our gossips
         new Thread(() -> {
@@ -43,7 +47,7 @@ public class SiloGossipManager {
                     propagateGossip();
                 }
             };
-            timer.schedule(gossip, retry, retry);
+            timer.schedule(gossip, gossipInterval, gossipInterval);
         }).start();
     }
 
@@ -83,9 +87,9 @@ public class SiloGossipManager {
         if (!executedOperations.containsKey(instance))
             executedOperations.put(instance, new ConcurrentHashMap<Integer, Operation>());
 
-        executedOperations.get(instance).put(opId, operation);
         operation.setOpId(opId);
         operation.setInstance(instance);
+        executedOperations.get(instance).put(opId, operation);
         timestamp.replace(instance, opId);
         System.out.println("Received a " + operation + " from " +
                 ( (instance != this.instance) ? "replica " + instance : "client") );
@@ -123,7 +127,7 @@ public class SiloGossipManager {
             System.exit(1);
         }
 
-        System.out.println("Replica " + instance + " starting gossip");
+        System.out.println("\nReplica " + instance + " initiating gossip...");
         try {
             Collection<ZKRecord> servers = zkNaming.listRecords(root);
             if (servers.isEmpty()) {
@@ -131,7 +135,10 @@ public class SiloGossipManager {
                 numbOfRetries++;
             }
 
-            System.out.println("Replica " + instance + " initiating gossip...");
+            if (servers.size() == 1) {
+                System.out.println("No replicas to contact.");
+            }
+
             for (ZKRecord zkRecord: servers) {
                 if (zkRecord.getPath().equals(this.currentPath) ) continue;
 
@@ -144,20 +151,25 @@ public class SiloGossipManager {
                 GossipTSRequest.Builder request = GossipTSRequest.newBuilder()
                         .setInstance(instance).putAllTimestamp(timestamp);
 
+                int splitPathSize = zkRecord.getPath().split("/").length;
+                String receivingReplicaInstance = zkRecord.getPath().split("/")[splitPathSize - 1];
                 //Send request
                 try {
-                    int splitPathSize = zkRecord.getPath().split("/").length;
-                    String receivingReplicaInstance = zkRecord.getPath().split("/")[splitPathSize - 1];
-                    System.out.println("Contacting replica " + receivingReplicaInstance + " at " + target + "...");
-                    System.out.println("Sending " + timestamp.toString() + "...");
-                    GossipTSResponse response = stub.gossipTS(request.build());
-                    System.out.println("Received answer " + response.getTimestampMap());
-                    channel.shutdown();
+                    System.out.println("\nContacting replica " + receivingReplicaInstance + " at " + target + "...");
+                    System.out.println("Sending timestamp " + timestamp.toString() + "...");
+                    GossipTSResponse response = stub
+                            .withDeadlineAfter(gossipInterval/2, TimeUnit.MILLISECONDS)
+                            .gossipTS(request.build());
+                    System.out.println("Received timestamp " + response.getTimestampMap() + " from replica " + response.getInstance());
                     receiveGossip(response.getTimestampMap(), response.getInstance());
                     numbOfRetries = 0;
-                } catch (StatusRuntimeException | InvalidTypeException e) {
+                } catch (InvalidTypeException e) {
                     System.out.println("Caught exception '" + e.getMessage() +
                             "' when trying to contact " + zkRecord.toString() + " at " + target);
+                } catch (StatusRuntimeException e) {
+                    checkGossipException(e.getStatus(), receivingReplicaInstance);
+                } finally {
+                    channel.shutdown();
                 }
 
             }
@@ -192,14 +204,17 @@ public class SiloGossipManager {
             ManagedChannel channel = ManagedChannelBuilder.forTarget(zkRecord.getURI()).usePlaintext().build();
             SiloGrpc.SiloBlockingStub stub = SiloGrpc.newBlockingStub(channel);
             GossipUpdateRequest request = GossipUpdateRequest.newBuilder()
-                                                                .setInstance(instance)
-                                                                .putAllTimestamp(timestamp)
-                                                                .addAllOperation(opsToSend)
-                                                                .build();
-            stub.gossipUpdate(request);
+                    .setInstance(instance)
+                    .putAllTimestamp(timestamp)
+                    .addAllOperation(opsToSend)
+                    .build();
+            stub.withDeadlineAfter(gossipInterval/2, TimeUnit.MILLISECONDS).gossipUpdate(request);
             channel.shutdown();
-        } catch (StatusRuntimeException | ZKNamingException e) {
-            System.out.println("Caught exception " + e.getMessage() + "when trying to contact replica " + otherInstance);
+        } catch (StatusRuntimeException e) {
+            checkGossipException(e.getStatus(), Integer.toString(otherInstance));
+        } catch (ZKNamingException e) {
+            System.out.println("Caught exception '" + e.getMessage() +
+                    "' when trying to contact " + otherInstance);
         }
     }
 
@@ -221,6 +236,28 @@ public class SiloGossipManager {
         return result;
     }
 
+    /**
+     * Prints a message according to the exception status
+     * @param status
+     */
+    void checkGossipException(Status status, String instance) {
+        String error = "Unknown error";
+        if (status.getCode() == Status.CANCELLED.getCode())
+            error = "Timed out";
+        else if (status.getCode() == Status.DEADLINE_EXCEEDED.getCode())
+            error = "Response took too long";
+        else if (status.getCode() == Status.UNAVAILABLE.getCode())
+            error = "Replica not available";
+        else error = status.getCode().toString();
+        System.out.println(error + " sending request at replica " + instance);
+    }
+
+    /**
+     * Receives an operations and returns an OperationMessage from protobuf
+     * @param operation
+     * @return
+     * @throws InvalidTypeException
+     */
     private OperationMessage convertOperationToMessage(Operation operation) throws InvalidTypeException {
         if (operation.getClassName().equals(Camera.class.getSimpleName())) {
             Camera camera = (Camera) operation;
@@ -232,6 +269,7 @@ public class SiloGossipManager {
             return OperationMessage.newBuilder()
                     .setCamera(cameraRequest)
                     .setOperationId(operation.getOpId())
+                    .setInstance(operation.getInstance())
                     .build();
         }
         else {
@@ -245,6 +283,7 @@ public class SiloGossipManager {
             return OperationMessage.newBuilder()
                     .setObservation(obsRequest)
                     .setOperationId(operation.getOpId())
+                    .setInstance(operation.getInstance())
                     .build();
         }
     }

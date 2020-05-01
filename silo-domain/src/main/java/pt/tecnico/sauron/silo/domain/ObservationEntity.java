@@ -90,4 +90,9 @@ public class ObservationEntity extends Operation {
         operationStore.addObservation(getCamName(), List.of(this));
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "Observation of " + type + " " + id;
+    }
 }
