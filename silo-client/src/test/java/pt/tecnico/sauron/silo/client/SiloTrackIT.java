@@ -12,11 +12,6 @@ import java.util.List;
 public class SiloTrackIT extends BaseIT{
 
 	// static members
-	private static String HOST = testProps.getProperty("zoo.host");
-	private static String PORT = testProps.getProperty("zoo.port");
-	private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
-	private static SiloFrontend frontend;
-
     private static String PERSON = "person";
 	private static String PERSON_ID_VALID = "1";
 	private static String PERSON_ID_INVALID = "1111a";
@@ -41,10 +36,9 @@ public class SiloTrackIT extends BaseIT{
 		obsList.add(new ObservationObject(PERSON, PERSON_ID_VALID,CAM_2));
 
 		try {
-			frontend = new SiloFrontend(HOST, PORT, INSTANCE);
-			frontend.camJoin(CAM_1 ,CAM_1_LAT_, CAM_1_LONG);
-			frontend.camJoin(CAM_2, CAM_2_LAT_, CAM_2_LONG);
-			frontend.report(obsList);
+			frontEnd.camJoin(CAM_1 ,CAM_1_LAT_, CAM_1_LONG);
+			frontEnd.camJoin(CAM_2, CAM_2_LAT_, CAM_2_LONG);
+			frontEnd.report(obsList);
         } catch (InvalidCameraArgumentsException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
@@ -53,11 +47,11 @@ public class SiloTrackIT extends BaseIT{
 	@AfterAll
 	public static void oneTimeTearDown() {
         try{
-            frontend.ctrlClear();
+            frontEnd.ctrlClear();
         } catch (CannotClearServerException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
-		frontend.exit();
+		frontEnd.exit();
 	}
 
 	// initialization and clean-up for each test
@@ -75,7 +69,7 @@ public class SiloTrackIT extends BaseIT{
     @Test
     public void successPersonTest() {
 	    try {
-	        ObservationObject obs = frontend.track(PERSON, PERSON_ID_VALID);
+	        ObservationObject obs = frontEnd.track(PERSON, PERSON_ID_VALID);
 	        Assert.assertEquals(PERSON, obs.getType());
 	        Assert.assertEquals(PERSON_ID_VALID, obs.getId());
 	        Assert.assertEquals(CAM_2, obs.getCamName());
@@ -88,7 +82,7 @@ public class SiloTrackIT extends BaseIT{
 	@Test
     public void successCarTest() {
 	    try {
-	        ObservationObject obs = frontend.track(CAR, CAR_ID_VALID);
+	        ObservationObject obs = frontEnd.track(CAR, CAR_ID_VALID);
 	        Assert.assertEquals(CAR, obs.getType());
 	        Assert.assertEquals(CAR_ID_VALID, obs.getId());
 	        Assert.assertEquals(CAM_1, obs.getCamName());
@@ -101,21 +95,21 @@ public class SiloTrackIT extends BaseIT{
 	@Test
 	public void tooManyOfSameGroupCarIdTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.track(CAR, "AAAAAA");
+			frontEnd.track(CAR, "AAAAAA");
 		});
 	}
 
 	@Test
 	public void invalidGroupCarIdTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.track(CAR, "A1AA1B");
+			frontEnd.track(CAR, "A1AA1B");
 		});
 	}
 
 	@Test
 	public void noObservationForIdTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.track(PERSON, "137");
+			frontEnd.track(PERSON, "137");
 		});
 	}
 
@@ -123,7 +117,7 @@ public class SiloTrackIT extends BaseIT{
     @Test
 	public void invalidTypeTest(){
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.track("object", PERSON_ID_VALID);
+			frontEnd.track("object", PERSON_ID_VALID);
 		});
 	}
 
@@ -131,42 +125,42 @@ public class SiloTrackIT extends BaseIT{
 	public void emptyTypeTest(){
 		// Should throw invalid type exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.track("", PERSON_ID_VALID);
+			frontEnd.track("", PERSON_ID_VALID);
 		});
 	}
 
 	@Test
 	public void emptyIdTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.track(PERSON, "");
+			frontEnd.track(PERSON, "");
 		});
 	}
 
 	@Test
 	public void invalidCombinationTypeIdPersonTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.track(PERSON, CAR_ID_VALID);
+			frontEnd.track(PERSON, CAR_ID_VALID);
 		});
 	}
 
 	@Test
 	public void invalidCombinationTypeIdCarTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.track(CAR, PERSON_ID_VALID);
+			frontEnd.track(CAR, PERSON_ID_VALID);
 		});
 	}
 
 	@Test
 	public void invalidIdCarTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.track(CAR, CAR_ID_INVALID);
+			frontEnd.track(CAR, CAR_ID_INVALID);
 		});
 	}
 
 	@Test
 	public void invalidIdPersonTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.track(PERSON, PERSON_ID_INVALID);
+			frontEnd.track(PERSON, PERSON_ID_INVALID);
 		});
 	}
 

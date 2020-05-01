@@ -11,11 +11,6 @@ import java.util.List;
 
 public class SiloTrackMatchIT extends BaseIT{
     // static members
-	private static String HOST = testProps.getProperty("zoo.host");
-	private static String PORT = testProps.getProperty("zoo.port");
-	private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
-	private static SiloFrontend frontend;
-
     private static String PERSON = "person";
 	private static String PERSON_ID_VALID = "1";
 	private static String PERSON_ID_INVALID = "1111a";
@@ -38,10 +33,10 @@ public class SiloTrackMatchIT extends BaseIT{
 		obsList.add(new ObservationObject(CAR, "20SZ21",CAM));
 
 		try {
-			frontend = new SiloFrontend(HOST, PORT, INSTANCE);
-			frontend.camJoin(CAM , CAM_LAT, CAM_LONG);
-			frontend.report(obsList);
-        } catch (InvalidCameraArgumentsException | FailedConnectionException e) {
+			frontEnd.ctrlClear();
+			frontEnd.camJoin(CAM , CAM_LAT, CAM_LONG);
+			frontEnd.report(obsList);
+        } catch (InvalidCameraArgumentsException | FailedConnectionException | CannotClearServerException e) {
             fail("Should not have thrown any exception.");
         }
     }
@@ -49,11 +44,11 @@ public class SiloTrackMatchIT extends BaseIT{
 	@AfterAll
 	public static void oneTimeTearDown() {
         try{
-            frontend.ctrlClear();
+            frontEnd.ctrlClear();
         } catch (CannotClearServerException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
-		frontend.exit();
+		frontEnd.exit();
 	}
 
 	// initialization and clean-up for each test
@@ -71,7 +66,7 @@ public class SiloTrackMatchIT extends BaseIT{
     @Test
     public void successCompleteIdTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_ID_VALID);
+	        List<ObservationObject> obs = frontEnd.trackMatch(CAR, CAR_ID_VALID);
 	        Assert.assertEquals(CAR, obs.get(0).getType());
 	        Assert.assertEquals(CAR_ID_VALID, obs.get(0).getId());
 	        Assert.assertEquals(CAM, obs.get(0).getCamName());
@@ -84,7 +79,7 @@ public class SiloTrackMatchIT extends BaseIT{
     @Test
     public void successBeginningPartIdTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_PART_BEGINNING);
+	        List<ObservationObject> obs = frontEnd.trackMatch(CAR, CAR_PART_BEGINNING);
 	        Assert.assertEquals(CAR, obs.get(0).getType());
 	        Assert.assertEquals(CAR_ID_VALID, obs.get(0).getId());
 	        Assert.assertEquals(CAM, obs.get(0).getCamName());
@@ -102,7 +97,7 @@ public class SiloTrackMatchIT extends BaseIT{
     @Test
     public void successMiddlePartIdTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_PART_MIDDLE);
+	        List<ObservationObject> obs = frontEnd.trackMatch(CAR, CAR_PART_MIDDLE);
 	        Assert.assertEquals(CAR, obs.get(0).getType());
 	        Assert.assertEquals(CAR_ID_VALID, obs.get(0).getId());
 	        Assert.assertEquals(CAM, obs.get(0).getCamName());
@@ -119,7 +114,7 @@ public class SiloTrackMatchIT extends BaseIT{
     @Test
     public void successEndPartIdTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trackMatch(CAR, CAR_PART_END);
+	        List<ObservationObject> obs = frontEnd.trackMatch(CAR, CAR_PART_END);
 	        Assert.assertEquals(CAR, obs.get(0).getType());
 	        Assert.assertEquals(CAR_ID_VALID, obs.get(0).getId());
 	        Assert.assertEquals(CAM, obs.get(0).getCamName());
@@ -136,7 +131,7 @@ public class SiloTrackMatchIT extends BaseIT{
     @Test
     public void successMultipleAsteriskIdTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trackMatch(CAR, "2*S*1");
+	        List<ObservationObject> obs = frontEnd.trackMatch(CAR, "2*S*1");
 	        Assert.assertEquals(CAR, obs.get(0).getType());
 	        Assert.assertEquals(CAR_ID_VALID, obs.get(0).getId());
 	        Assert.assertEquals(CAM, obs.get(0).getCamName());
@@ -153,7 +148,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	@Test
     public void partIdWithoutAsteriskTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trackMatch(CAR, "20SD");
+	        List<ObservationObject> obs = frontEnd.trackMatch(CAR, "20SD");
 	        Assertions.assertTrue(obs.isEmpty());
 
         } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
@@ -164,7 +159,7 @@ public class SiloTrackMatchIT extends BaseIT{
     @Test
     public void successNoObservationTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trackMatch(CAR, "40SA21");
+	        List<ObservationObject> obs = frontEnd.trackMatch(CAR, "40SA21");
 	        Assertions.assertTrue(obs.isEmpty());
 
         } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
@@ -175,7 +170,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	@Test
 	public void emptyIdTest(){
 	    try {
-	        List<ObservationObject> obs = frontend.trackMatch(CAR, "");
+	        List<ObservationObject> obs = frontEnd.trackMatch(CAR, "");
 	        Assertions.assertTrue(obs.isEmpty());
 
         } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
@@ -186,7 +181,7 @@ public class SiloTrackMatchIT extends BaseIT{
     @Test
 	public void invalidTypeTest(){
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.trackMatch("object", PERSON_ID_VALID);
+			frontEnd.trackMatch("object", PERSON_ID_VALID);
 		});
 	}
 
@@ -194,7 +189,7 @@ public class SiloTrackMatchIT extends BaseIT{
 	public void emptyTypeTest(){
 		// Should throw invalid type exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.trackMatch("", PERSON_ID_VALID);
+			frontEnd.trackMatch("", PERSON_ID_VALID);
 		});
 	}
 

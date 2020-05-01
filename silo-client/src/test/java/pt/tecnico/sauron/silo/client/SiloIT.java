@@ -5,7 +5,6 @@ import org.junit.jupiter.api.*;
 public class SiloIT extends BaseIT {
 	
 	// static members
-	// TODO	
 	
 	
 	// one-time initialization and clean-up

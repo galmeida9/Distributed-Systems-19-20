@@ -12,11 +12,6 @@ import pt.tecnico.sauron.silo.client.exceptions.InvalidCameraArgumentsException;
 public class SiloCamInfoIT extends BaseIT {
 	
 	// static members
-    private static String HOST = testProps.getProperty("zoo.host");
-    private static String PORT = testProps.getProperty("zoo.port");
-    private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
-    private static SiloFrontend frontEnd;
-
     private static String DEFAULT_CAMERA = "camName";
     private static String NON_EXISTING_NAME = "fdsfsdfd";
     private static double DEFAULT_LAT = 1.232;
@@ -28,8 +23,6 @@ public class SiloCamInfoIT extends BaseIT {
 	@BeforeAll
 	public static void oneTimeSetUp(){
         try {
-            // start frontend
-            frontEnd = new SiloFrontend(HOST, PORT, INSTANCE);
             // given a Camera for all the tests
             frontEnd.camJoin(DEFAULT_CAMERA, DEFAULT_LAT, DEFAULT_LONG);
         } catch (InvalidCameraArgumentsException | FailedConnectionException e) {

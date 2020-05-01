@@ -11,11 +11,6 @@ import static org.junit.Assert.*;
 public class SiloReportIT extends BaseIT {
 
 	// static members
-	private static String HOST = testProps.getProperty("zoo.host");
-	private static String PORT = testProps.getProperty("zoo.port");
-	private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
-	private static SiloFrontend frontend;
-
 	private static String PERSON = "person";
 	private static String PERSON_ID_VALID = "1";
 	private static String PERSON_ID_INVALID = "1111a";
@@ -33,24 +28,19 @@ public class SiloReportIT extends BaseIT {
 	// one-time initialization and clean-up
 	@BeforeAll
 	public static void oneTimeSetUp(){
-		try {
-			frontend = new SiloFrontend(HOST, PORT, INSTANCE);
-			observations = new ArrayList<>();
-		} catch (FailedConnectionException e) {
-			fail("Should not have thrown any exception.");
-		}
+		observations = new ArrayList<>();
 	}
 
 	@AfterAll
 	public static void oneTimeTearDown() {
-		frontend.exit();
+		frontEnd.exit();
 	}
 
 	// initialization and clean-up for each test
 	@BeforeEach
 	public void setUp() {
 		try {
-			frontend.camJoin(CAM_NAME_EXISTENT, 1, 1);
+			frontEnd.camJoin(CAM_NAME_EXISTENT, 1, 1);
 		} catch (InvalidCameraArgumentsException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
@@ -59,7 +49,7 @@ public class SiloReportIT extends BaseIT {
 	@AfterEach
 	public void tearDown() {
 		try {
-            frontend.ctrlClear();
+            frontEnd.ctrlClear();
         } catch (CannotClearServerException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
@@ -74,7 +64,7 @@ public class SiloReportIT extends BaseIT {
 		observations.add(new ObservationObject(PERSON, PERSON_ID_VALID, CAM_NAME_EXISTENT));
 
 		try {
-			frontend.report( observations);
+			frontEnd.report( observations);
 		}
 		catch (InvalidTypeException | ReportException | FailedConnectionException e){
 			System.out.println(e.getMessage());
@@ -88,7 +78,7 @@ public class SiloReportIT extends BaseIT {
 		observations.add(new ObservationObject(CAR, CAR_ID_VALID, CAM_NAME_EXISTENT));
 
 		try {
-			frontend.report( observations);
+			frontEnd.report( observations);
 		}
 		catch (InvalidTypeException | ReportException | FailedConnectionException e){
 			System.out.println(e.getMessage());
@@ -103,7 +93,7 @@ public class SiloReportIT extends BaseIT {
 			observations.add(new ObservationObject(PERSON, PERSON_ID_VALID + Integer.toString(i), CAM_NAME_EXISTENT));
 
 		try {
-			frontend.report( observations);
+			frontEnd.report( observations);
 		}
 		catch (InvalidTypeException | ReportException | FailedConnectionException e){
 			System.out.println(e.getMessage());
@@ -118,7 +108,7 @@ public class SiloReportIT extends BaseIT {
 			observations.add(new ObservationObject(CAR, CAR_ID_VALID, CAM_NAME_EXISTENT));
 
 		try {
-			frontend.report( observations);
+			frontEnd.report( observations);
 		}
 		catch (InvalidTypeException | ReportException | FailedConnectionException e){
 			System.out.println(e.getMessage());
@@ -135,7 +125,7 @@ public class SiloReportIT extends BaseIT {
 		}
 
 		try {
-			frontend.report( observations);
+			frontEnd.report( observations);
 		}
 		catch (InvalidTypeException | ReportException | FailedConnectionException e){
 			System.out.println(e.getMessage());
@@ -150,7 +140,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw exception
 		Assertions.assertThrows(ReportException.class, () -> {
-			frontend.report(observations);
+			frontEnd.report(observations);
 		});
 
 	}
@@ -162,7 +152,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw exception
 		Assertions.assertThrows(ReportException.class, () -> {
-				frontend.report(observations);
+				frontEnd.report(observations);
 		});
 	}
 
@@ -173,7 +163,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.report(observations);
+			frontEnd.report(observations);
 		});
 	}
 
@@ -184,7 +174,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.report(observations);
+			frontEnd.report(observations);
 		});
 	}
 
@@ -195,7 +185,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw exception
 		Assertions.assertThrows(ReportException.class, () -> {
-			frontend.report(observations);
+			frontEnd.report(observations);
 		});
 	}
 
@@ -206,7 +196,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw exception
 		Assertions.assertThrows(ReportException.class, () -> {
-			frontend.report(observations);
+			frontEnd.report(observations);
 		});
 	}
 
@@ -217,7 +207,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw exception
 		Assertions.assertThrows(ReportException.class, () -> {
-			frontend.report(observations);
+			frontEnd.report(observations);
 		});
 	}
 
@@ -228,7 +218,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw exception
 		Assertions.assertThrows(ReportException.class, () -> {
-			frontend.report(observations);
+			frontEnd.report(observations);
 		});
 	}
 
@@ -239,7 +229,7 @@ public class SiloReportIT extends BaseIT {
 
 		// Should throw exception
 		Assertions.assertThrows(ReportException.class, () -> {
-			frontend.report(observations);
+			frontEnd.report(observations);
 		});
 	}
 

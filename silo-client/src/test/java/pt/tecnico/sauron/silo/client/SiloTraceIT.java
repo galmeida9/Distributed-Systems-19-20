@@ -13,11 +13,6 @@ import java.util.List;
 public class SiloTraceIT extends BaseIT {
 
     	// static members
-	private static String HOST = testProps.getProperty("zoo.host");
-	private static String PORT = testProps.getProperty("zoo.port");
-	private static int INSTANCE = Integer.parseInt(testProps.getProperty("instance"));
-	private static SiloFrontend frontend;
-
     private static String PERSON = "person";
 	private static String PERSON_ID_VALID = "1";
 	private static String PERSON_ID_INVALID = "1111a";
@@ -41,10 +36,9 @@ public class SiloTraceIT extends BaseIT {
 		obsList.add(new ObservationObject(CAR, CAR_ID_VALID,CAM_1));
 
 		try {
-			frontend = new SiloFrontend(HOST, PORT, INSTANCE);
-            frontend.camJoin(CAM_1 ,CAM_1_LAT_, CAM_1_LONG);
-			frontend.camJoin(CAM_2, CAM_2_LAT_, CAM_2_LONG);
-			frontend.report(obsList);
+            frontEnd.camJoin(CAM_1 ,CAM_1_LAT_, CAM_1_LONG);
+			frontEnd.camJoin(CAM_2, CAM_2_LAT_, CAM_2_LONG);
+			frontEnd.report(obsList);
         } catch (InvalidCameraArgumentsException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
@@ -53,11 +47,11 @@ public class SiloTraceIT extends BaseIT {
 	@AfterAll
 	public static void oneTimeTearDown() {
         try{
-            frontend.ctrlClear();
+            frontEnd.ctrlClear();
         } catch (CannotClearServerException | FailedConnectionException e) {
             fail("Should not have thrown any exception.");
         }
-		frontend.exit();
+		frontEnd.exit();
 	}
 
 	// initialization and clean-up for each test
@@ -76,7 +70,7 @@ public class SiloTraceIT extends BaseIT {
     @Test
     public void successTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trace(PERSON, PERSON_ID_VALID);
+	        List<ObservationObject> obs = frontEnd.trace(PERSON, PERSON_ID_VALID);
 	        Assert.assertEquals(PERSON, obs.get(0).getType());
 	        Assert.assertEquals(PERSON_ID_VALID, obs.get(0).getId());
 	        Assert.assertEquals(CAM_2, obs.get(0).getCamName());
@@ -94,7 +88,7 @@ public class SiloTraceIT extends BaseIT {
     @Test
     public void successNoObservationTest() {
 	    try {
-	        List<ObservationObject> obs = frontend.trace(CAR, "40SA21");
+	        List<ObservationObject> obs = frontEnd.trace(CAR, "40SA21");
 	        Assertions.assertTrue(obs.isEmpty());
 
         } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
@@ -106,7 +100,7 @@ public class SiloTraceIT extends BaseIT {
     @Test
 	public void invalidTypeTest(){
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.trace("object", PERSON_ID_VALID);
+			frontEnd.trace("object", PERSON_ID_VALID);
 		});
 	}
 
@@ -114,42 +108,42 @@ public class SiloTraceIT extends BaseIT {
 	public void emptyTypeTest(){
 		// Should throw invalid type exception
 		Assertions.assertThrows(InvalidTypeException.class, () -> {
-			frontend.trace("", PERSON_ID_VALID);
+			frontEnd.trace("", PERSON_ID_VALID);
 		});
 	}
 
 	@Test
 	public void emptyIdTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.trace(PERSON, "");
+			frontEnd.trace(PERSON, "");
 		});
 	}
 
 	@Test
 	public void invalidCombinationTypeIdPersonTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.trace(PERSON, CAR_ID_VALID);
+			frontEnd.trace(PERSON, CAR_ID_VALID);
 		});
 	}
 
 	@Test
 	public void invalidCombinationTypeIdCarTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.trace(CAR, PERSON_ID_VALID);
+			frontEnd.trace(CAR, PERSON_ID_VALID);
 		});
 	}
 
 	@Test
 	public void invalidIdCarTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.trace(CAR, CAR_ID_INVALID);
+			frontEnd.trace(CAR, CAR_ID_INVALID);
 		});
 	}
 
 	@Test
 	public void invalidIdPersonTest(){
 		Assertions.assertThrows(NoObservationsFoundException.class, () -> {
-			frontend.trace(PERSON, PERSON_ID_INVALID);
+			frontEnd.trace(PERSON, PERSON_ID_INVALID);
 		});
 	}
 
