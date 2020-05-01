@@ -32,14 +32,6 @@ Ao enviar uma linha vazia, o cliente envia as observações para o servidor e re
  `NOK` se ocorreram erros ou até uma mensagem diferente caso tenha sido registada uma observação com
  argumentos errados.
 
-#### Exemplos
-
-Para demonstrar a utilização, temos o ficheiro `eye_1.txt`, que demonstra o Eye a receber variadas observações e a enviá-las no final.
-No ficheiro `eye_2.txt`, envia-se observações do tipo `person` e envia-se para o servidor com sucesso.
-No ficheiro `eye_3.txt`, envia-se observações do tipo `car` e envia-se para o servidor com sucesso.
-
-No ficheiro `eye_4.txt`, demonstra-se a utilização de comentários e do comando `zzz` com 1000 milisegundos (1 segundo), enviando depois uma observação.
-
 ### Spotter
 
 Para correr, é necessário primeiro iniciar o silo-server. De seguida, na pasta spotter corre-se o comando `target/appassembler/bin/spotter localhost 8080`.
@@ -59,20 +51,121 @@ Para sair do cliente Spotter executar o comando0 `exit`.
 
 Para obter informaçao sobre os comandos executar o comando `help`.
 
-#### Exemplos
+### Teste das operações
 
-No ficheiro spotter_1.txt, procura a observação do carro usando o identificador do carro, que terá como resultado: 
-`car,20SD24,2019-10-04T10:02:07,Tagus,38.737613,-9.303164`</br>
+#### cam_join
 
-No ficheiro spotter_2.txt, procura a observação da pessoa usando o identificador da pessoa, que terá como resultado: 
-`person,6428365,2019-10-04T10:02:07,Tagus,38.737613,-9.303164`</br>
+Dando como argumentos o `zoohost zooport nome_da_camâra latitude longitude` e ainda tendo como argumento opcional a réplica a que se vai tentar conectar, a camâra tem de ter um id entre  3 e 15 (inclusive), por exemplo `$ eye localhost 2181 Alameda 1 2 1`, é rejeitado:
 
-No ficheiro spotter_3.txt, procura a observação do carro usando um fragmento do identificador do carro, que terá como resultado: `car,20SD20,2019-10-04T10:02:07,Tagus,38.737613,-9.303164`</br>
-`car,20SD24,2019-10-04T10:02:07,Tagus,38.737613,-9.303164`
-`car,20SD25,2019-10-02T22:33:01,Tagus,38.737613,-9.303164`</br>
+```
+Login success.
+```
 
-No ficheiro spotter_4.txt, procura o caminho percorrido pelo carro usando o identificador do carro, que terá como resultado: 
-`car,20SD24,2019-10-04T10:02:07,Tagus,38.737613,-9.303164`</br>
+Dando como argumento uma camâra com id menor que 3 ou maior que 15, como por exemplo `$ eye localhost 2181 ab 1 2 1` ou `% eye localhost 2181 aaaaaaaaaaaaaaaaaaab 1 2 1`, é rejeitado:
 
-No ficheiro spotter_5.txt, utiliza-se os comandos de controlo para saber o estado do servidor e de seguida limpá-lo que devolve: `Hello hello!` e de seguida `CtlrClear was OK`.
+```
+Login failure.
+```
 
+#### cam_info
+
+#### report
+
+Para demonstrar a utilização, temos o ficheiro `eye_1.txt`, que demonstra o Eye a receber variadas observações e a enviá-las no final:
+
+```
+person,5638247
+Added a person with id 5638247.
+car,20SD20
+Added a car with id 20SD20.
+
+Report was OK
+```
+No ficheiro `eye_2.txt`, envia-se observações do tipo `person` e envia-se para o servidor com sucesso:
+```
+person,5638246
+Added a person with id 5638246.
+person,6428365
+Added a person with id 6428365.
+
+Report was OK
+```
+No ficheiro `eye_3.txt`, envia-se observações do tipo `car` e envia-se para o servidor com sucesso:
+
+```
+car,20SD24
+Added a car with id 20SD24.
+car,20SD25
+Added a car with id 20SD25.
+
+Report was OK
+```
+
+No ficheiro `eye_4.txt`, demonstra-se a utilização de comentários e do comando `zzz` com 1000 milisegundos (1 segundo), enviando depois uma observação:
+
+```
+# Comentario
+person,1
+Added a person with id 1.
+zzz,1000
+
+Report was OK
+```
+
+No ficheiro `eye_5.txt`, demonstra-se a tentativa de enviar observações de um carro com ID inválido:
+
+```
+car,1
+Added a car with id 1.
+
+Report was NOK
+```
+
+No ficheiro `eye_6.txt`, demonstra-se a tentativa de enviar observações de uma pessoa com ID inválido:
+
+```
+person,abc
+Added a person with id abc.
+
+Report was NOK
+```
+
+#### track
+
+Para as seguintes demonstrações foram usados alguns dos exemplos da secção `report`:
+```
+$ eye localhost 2181 Tagus 1 2 1 < eye1.txt
+$ eye localhost 2181 Tagus 1 2 1 < eye2.txt
+$ eye localhost 2181 Tagus 1 2 1 < eye3.txt
+$ eye localhost 2181 Tagus 1 2 1 < eye4.txt
+```
+
+No ficheiro `spotter_1.txt`, procura a observação do carro usando o identificador do carro, que terá como resultado: 
+```
+spot car 20SD24
+car,20SD24,2020-05-01T22:25:34.025821500,Tagus,1.0,2.0
+```
+
+No ficheiro `spotter_2.txt`, procura a observação da pessoa usando o identificador da pessoa, que terá como resultado: 
+```
+spot person 6428365
+person,6428365,2020-05-01T22:25:23.682830600,Tagus,1.0,2.0
+```
+
+#### track_match
+
+No ficheiro `spotter_3.txt`, procura a observação do carro usando um fragmento do identificador do carro, que terá como resultado:
+```
+spot car 20SD*
+car,20SD20,2020-05-01T22:25:15.161571700,Tagus,1.0,2.0
+car,20SD24,2020-05-01T22:25:34.025821500,Tagus,1.0,2.0
+car,20SD25,2020-05-01T22:25:34.028785700,Tagus,1.0,2.0
+```
+
+#### trace
+
+No ficheiro `spotter_4.txt`, procura o caminho percorrido pelo carro usando o identificador do carro, que terá como resultado: 
+```
+trail car 20SD24
+car,20SD24,2020-05-01T22:25:34.025821500,Tagus,1.0,2.0
+```
