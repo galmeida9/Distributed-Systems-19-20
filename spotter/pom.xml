@@ -73,7 +73,6 @@
 					<arguments>
 						<argument>${zoo.host}</argument>
 						<argument>${zoo.port}</argument>
-						<argument>${instance}</argument>
 					</arguments>
 				</configuration>
 			</plugin>

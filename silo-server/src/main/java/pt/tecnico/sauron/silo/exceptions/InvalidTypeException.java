@@ -1,4 +1,4 @@
-package pt.tecnico.sauron.silo;
+package pt.tecnico.sauron.silo.exceptions;
 
 //Exception for when camera is not found
 public class InvalidTypeException extends Exception{

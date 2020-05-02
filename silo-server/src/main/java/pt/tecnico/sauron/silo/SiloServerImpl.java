@@ -10,6 +10,9 @@ import pt.tecnico.sauron.silo.domain.Operation;
 import pt.tecnico.sauron.silo.domain.exceptions.CameraNotFoundException;
 import pt.tecnico.sauron.silo.domain.exceptions.InvalidCameraArguments;
 import pt.tecnico.sauron.silo.domain.exceptions.InvalidIdException;
+import pt.tecnico.sauron.silo.exceptions.CannotClearServerException;
+import pt.tecnico.sauron.silo.exceptions.InvalidTypeException;
+import pt.tecnico.sauron.silo.exceptions.NoObservationsException;
 import pt.tecnico.sauron.silo.grpc.*;
 
 import java.time.LocalDateTime;
@@ -64,7 +67,10 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 				.setLat(listCoords.get(0))
 				.setLong(listCoords.get(1))
 				.build();
-			CamInfoResponse response = CamInfoResponse.newBuilder().setCoordinates(coords).build();
+			CamInfoResponse response = CamInfoResponse.newBuilder()
+					.setCoordinates(coords)
+					.putAllTimestamp(manager.getTimestamp())
+					.build();
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
 		}
@@ -113,7 +119,10 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 				return;
 			ObservationEntity obs = manager.getSiloBackend().track(convertToObsEntityType(request.getType()), request.getId());
 			Observation obsResponse = convertToObservation(obs);
-			TrackResponse response = TrackResponse.newBuilder().setObservation(obsResponse).build();
+			TrackResponse response = TrackResponse.newBuilder()
+                    .setObservation(obsResponse)
+					.putAllTimestamp(manager.getTimestamp())
+                    .build();
 			responseObserver.onNext(response);
 			responseObserver.onCompleted();
 		} catch (InvalidIdException | InvalidTypeException e) {
@@ -135,7 +144,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			if (Context.current().isCancelled())
 				return;
 			List<ObservationEntity> obs = manager.getSiloBackend().trackMatch(convertToObsEntityType(request.getType()), request.getPartialId());
-			TrackMatchResponse.Builder response = TrackMatchResponse.newBuilder();
+			TrackMatchResponse.Builder response = TrackMatchResponse.newBuilder().putAllTimestamp(manager.getTimestamp());
 
 			for (ObservationEntity observation: obs) {
 				response.addObservation(convertToObservation(observation));
@@ -162,7 +171,7 @@ public class SiloServerImpl extends SiloGrpc.SiloImplBase {
 			if (Context.current().isCancelled())
 				return;
 			List<ObservationEntity> obs = manager.getSiloBackend().trace(convertToObsEntityType(request.getType()), request.getId());
-			TraceResponse.Builder response = TraceResponse.newBuilder();
+			TraceResponse.Builder response = TraceResponse.newBuilder().putAllTimestamp(manager.getTimestamp());
 
 			for (ObservationEntity observation : obs) {
 				response.addObservation(convertToObservation(observation));

@@ -7,11 +7,14 @@ import pt.ulisboa.tecnico.sdis.zk.ZKNaming;
 
 import java.io.IOException;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SiloServerApp {
 	
 	public static void main(String[] args) throws IOException, InterruptedException{
 		System.out.println(SiloServerApp.class.getSimpleName());
+		Logger.getLogger("io.grpc").setLevel(Level.OFF);
 		
 		// receive and print arguments
 		System.out.printf("Received %d arguments%n", args.length);
