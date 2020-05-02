@@ -46,7 +46,7 @@ public class SiloFrontend {
      * @return int
      * @throws FailedConnectionException
      */
-    private int connectToServer(int instance) throws FailedConnectionException {
+    private void connectToServer(int instance) throws FailedConnectionException {
         String path = "/grpc/sauron/silo";
         if (instance >= 0) {
             path = path + '/' + Integer.toString(instance);
@@ -85,7 +85,8 @@ public class SiloFrontend {
 
         channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
         stub = SiloGrpc.newBlockingStub(channel);
-        return Integer.parseInt(record.getPath().split("/")[record.getPath().split("/").length - 1]);
+        int replicaNo = Integer.parseInt(record.getPath().split("/")[record.getPath().split("/").length - 1]);
+        System.out.println("Connected to replica " + replicaNo);
     }
 
     /*
@@ -493,7 +494,7 @@ public class SiloFrontend {
                 System.out.println("Failed to retry request, changing server and trying again.");
                 retries = 0;
                 channel.shutdown();
-                System.out.println("Connected to replica " + connectToServer(-1));
+                connectToServer(-1);
                 return func.invoke(this, args);
             }
             else
