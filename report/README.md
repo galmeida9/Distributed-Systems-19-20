@@ -24,8 +24,13 @@ Sistemas Distribuídos 2019-2020, segundo semestre
 - [Métodos enviam exceções em caso de erro](https://github.com/tecnico-distsys/A09-Sauron/commit/b656a724d092cfff34f1389078657b251da2bef7)
 - [Erros no servidor são enviados em exceções para o cliente](https://github.com/tecnico-distsys/A09-Sauron/commit/b656a724d092cfff34f1389078657b251da2bef7)
 - [Utilização correta de estruturas concorrentes](https://github.com/tecnico-distsys/A09-Sauron/commit/55b2f3139079c287b379dad2216786e16ecf4bb4)
-- [Guia de demosntração mais completo](https://github.com/tecnico-distsys/A09-Sauron/commit/d3f96f2e78a33454f9158320e7f9fe88641abafc)
-- [Comentários relevantes](TODO:)
+- [Guia de demonstração mais completo](https://github.com/tecnico-distsys/A09-Sauron/commit/d3f96f2e78a33454f9158320e7f9fe88641abafc)
+- Comentários relevantes:
+    - [No domínio](https://github.com/tecnico-distsys/A09-Sauron/commit/78fb65f2a1eb00aefbad52cf0dedd54ecbccc2e1)
+    - [No servidor](https://github.com/tecnico-distsys/A09-Sauron/commit/a79c3c869109334701fcffd7adac27e3f7fa5679)
+    - [No cliente](https://github.com/tecnico-distsys/A09-Sauron/commit/a79c3c869109334701fcffd7adac27e3f7fa5679)
+    - [No eye](https://github.com/tecnico-distsys/A09-Sauron/commit/23ffdb7f2965a8ef2a93f42bd98372d503b018f2)
+    - [No spotter](https://github.com/tecnico-distsys/A09-Sauron/commit/75c9f9179a5d79f3fef72cdf483684c6e1260abf)
 
 ## Modelo de faltas
 Faltas toleradas
@@ -45,7 +50,7 @@ Faltas não toleradas
 
 ![Solução](solution.png)
 
-Quando um cliente conecta-se a um servidor, esse servidor poderá falhar silenciosamente. Então, ao enviar uma operação, o servidor não irá responder, por isso, como implementámos `deadlines` nas operações, passado um tempo a função irá expirar e o cliente tentará de novo, até 3 vezes, a partir daí tenta conectar-se a outro servidor.
+Quando um cliente conecta-se a um servidor, esse servidor poderá falhar silenciosamente. Então, ao enviar uma operação, o servidor não irá responder, por isso, como implementamos `deadlines` nas operações, passado um tempo a função irá expirar e o cliente tentará de novo, até 3 vezes, a partir daí tenta conectar-se a outro servidor.
 
 A partir do momento em que o cliente troca de réplica, passa-se a utilizar a cache de forma a manter a coerência entre comandos já vistos anteriormente. Esta cache é explicada mais profundamente nas Opções de Implementação.
 
@@ -88,7 +93,8 @@ No lado contrário, o gestor da réplica que recebeu o timestamp inicialmente po
 ## Opções de implementação
 
 Pelo facto da não existência de coerência forte, é preciso resolver anomalias de leituras incoerentes pelo mesmo cliente, ou seja, quando um cliente está a fazer leituras a uma réplica, entretanto essa réplica falha e o cliente conecta-se a uma nova réplica, este cliente poderá vir a receber operações que não são coerentes com as leituras anteriores, podendo as atuais estarem desatualizadas. Por isso, decidimos implementar uma cache, que é atualizada a cada operação feita pelo cliente, recebendo o timestamp associado a essa operação e guardando as operações conhecidas por este cliente.
-> TODO: Adicionar especificações da cache
+
+Esta cache guarda no máximo até 10 operações, quer sejam de observações ou de informações de câmara. Quando a cache está cheia, cada operação nova é colocada no lugar da mais antiga.
 
 Tomámos a decisão de que as réplicas deverão tentar enviar as mensagens de atualização para todas as restantes réplicas de forma assíncrona, mantendo um nível mínimo de coerência.
 
