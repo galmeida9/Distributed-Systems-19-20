@@ -51,6 +51,7 @@ message CamInfoRequest {
 
 message CamInfoResponse {
     Coordinates coordinates = 1;
+    map<int32, int32> timestamp = 2;
 }
 
 // report
@@ -70,6 +71,7 @@ message TrackRequest {
 
 message TrackResponse {
     Observation observation = 1;
+    map<int32, int32> timestamp = 2;
 }
 
 // track match
@@ -80,6 +82,7 @@ message TrackMatchRequest {
 
 message TrackMatchResponse {
     repeated Observation observation = 1;
+    map<int32, int32> timestamp = 2;
 }
 
 // trace
@@ -90,6 +93,7 @@ message TraceRequest {
 
 message TraceResponse {
     repeated Observation observation = 1;
+    map<int32, int32> timestamp = 2;
 }
 
 // ctrl_ping

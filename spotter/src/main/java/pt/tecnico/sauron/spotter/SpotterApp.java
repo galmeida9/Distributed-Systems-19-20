@@ -85,11 +85,11 @@ public class SpotterApp {
                         System.out.println("Usage: ctrl_ping <message>");
                         break;
                     }
-                    //FIXME: Bad catching of failed connection
                     try {
                         System.out.println(silo.ctrlPing(line[1]));
                     } catch (FailedConnectionException e) {
-                        e.printStackTrace();
+                        System.out.println(e.getMessage());
+                        System.exit(0);
                     }
                     break;
 
@@ -97,17 +97,19 @@ public class SpotterApp {
                     try {
                         silo.ctrlClear();
                         System.out.println("CtrlClear was OK");
-                    //FIXME: Bad catching of failed connection
-                    } catch (CannotClearServerException | FailedConnectionException e) {
+                    } catch (CannotClearServerException e) {
                         System.out.println("CtrlClear was NOK: " + e.getMessage());
+                    } catch (FailedConnectionException e) {
+                        System.out.println(e.getMessage());
+                        System.exit(0);
                     }
                     break;
                 case "ctrl_init":
                     try {
                         silo.ctrlInit();
-                    //FIXME: Bad catching of failed connection
                     } catch (FailedConnectionException e) {
-                        e.printStackTrace();
+                        System.out.println(e.getMessage());
+                        System.exit(0);
                     }
                     System.out.println("CtrlInit was OK");
                     break;
@@ -125,14 +127,15 @@ public class SpotterApp {
         silo.exit();
     }
 
-
-    /*
-    *   Auxiliary functions
-    */
-
+    /**
+     * Converts observation and camera to a formatted line in a string
+     * @param obs
+     * @param cams
+     * @return
+     */
     public static String convertToString(ObservationObject obs, Map<String, String> cams){
 	    String camName = obs.getCamName();
-	    String coordinates;
+	    String coordinates = "";
 
 	    //Obtain coordinates of camera
 	    if (cams.containsKey(camName)){
@@ -142,11 +145,13 @@ public class SpotterApp {
             try {
                 coordinates = silo.camInfo(camName);
                 cams.put(camName, coordinates);
-            //FIXME: Bad catching of failed connection
-            } catch (CameraNotFoundException | FailedConnectionException e) {
+            } catch (CameraNotFoundException e) {
                 System.out.println(e.getMessage());
 
                 return "";
+            } catch (FailedConnectionException e) {
+                System.out.println(e.getMessage());
+                System.exit(0);
             }
         }
 
@@ -158,7 +163,10 @@ public class SpotterApp {
                 + coordinates +'\n';
     }
 
-
+    /**
+     * Process observations to string and prints on terminal
+     * @param obs
+     */
     public static void processObservations(List<ObservationObject> obs){
 	    Map<String, String> cams = new HashMap<>();
 	    List<String> res = new ArrayList<>();
@@ -170,11 +178,11 @@ public class SpotterApp {
 	        System.out.print(observationStr);
     }
 
-
-    /*
-    *  Command functions
-    */
-
+    /**
+     * Process command spot
+     * @param type
+     * @param id
+     */
     public static void spot(String type, String id){
 	    try{
 	        if (id.contains("*")){
@@ -187,25 +195,35 @@ public class SpotterApp {
 	            obs.add(silo.track(type, id));
 	            processObservations(obs);
             }
-        //FIXME: Bad catching of failed connection
-	    } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
+	    } catch (InvalidTypeException | NoObservationsFoundException e) {
             System.out.println(e.getMessage());
+        } catch (FailedConnectionException e) {
+            System.out.println(e.getMessage());
+            System.exit(0);
         }
     }
 
-
+    /**
+     * Processes command trail, by receiving from silo and ordering them
+     * @param type
+     * @param id
+     */
     public static void trail(String type, String id){
         try{
-            List<ObservationObject> obs= silo.trace(type, id);
+            List<ObservationObject> obs = silo.trace(type, id);
             obs.sort(Comparator.comparing(ObservationObject::getDatetime).reversed());
             processObservations(obs);
-        //FIXME: Bad catching of failed connection
-        } catch (InvalidTypeException | NoObservationsFoundException | FailedConnectionException e) {
+        } catch (InvalidTypeException | NoObservationsFoundException e) {
             System.out.println(e.getMessage());
+        } catch (FailedConnectionException e) {
+            System.out.println(e.getMessage());
+            System.exit(0);
         }
     }
 
-
+    /**
+     * Prints to terminal the commands possible
+     */
     public static void help(){
 	    System.out.print(
                 "Spot command - shows latest observation of a person or object-> spot <type> <id/partId>  Command spot\n" +

@@ -153,7 +153,6 @@ public class EyeApp {
 			debug(e.getMessage());
 			observations.clear();
 			System.out.println("Report was NOK");
-		//FIXME: Bad catching of failed connection and Check if should connect to other server
 		} catch (FailedConnectionException e) {
 			observations.clear();
 			System.out.println(e.getMessage());
