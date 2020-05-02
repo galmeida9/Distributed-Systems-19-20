@@ -1,4 +1,4 @@
-package pt.tecnico.sauron.silo;
+package pt.tecnico.sauron.silo.exceptions;
 
 // Exception for no observation found
 public class NoObservationsException extends Exception {

@@ -10,6 +10,9 @@ import pt.tecnico.sauron.silo.domain.Operation;
 import pt.tecnico.sauron.silo.domain.exceptions.CameraNotFoundException;
 import pt.tecnico.sauron.silo.domain.exceptions.InvalidCameraArguments;
 import pt.tecnico.sauron.silo.domain.exceptions.InvalidIdException;
+import pt.tecnico.sauron.silo.exceptions.CannotClearServerException;
+import pt.tecnico.sauron.silo.exceptions.InvalidTypeException;
+import pt.tecnico.sauron.silo.exceptions.NoObservationsException;
 import pt.tecnico.sauron.silo.grpc.*;
 
 import java.time.LocalDateTime;
