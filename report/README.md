@@ -50,7 +50,7 @@ Faltas não toleradas
 
 ![Solução](solution.png)
 
-Quando um cliente conecta-se a um servidor, esse servidor poderá falhar silenciosamente. Então, ao enviar uma operação, o servidor não irá responder, por isso, como implementamos `deadlines` nas operações, passado um tempo a função irá expirar e o cliente tentará de novo, até 3 vezes, a partir daí tenta conectar-se a outro servidor.
+Quando um cliente conecta-se a um servidor, esse servidor poderá falhar silenciosamente. Então, ao enviar uma operação, o servidor não irá responder, por isso, como implementamos `deadlines` nas operações, passado um determinado tempo a função irá expirar e o cliente tentará de novo, até 3 vezes, a partir daí tenta conectar-se a outro servidor.
 
 A partir do momento em que o cliente troca de réplica, passa-se a utilizar a cache de forma a manter a coerência entre comandos já vistos anteriormente. Esta cache é explicada mais profundamente nas Opções de Implementação.
 
@@ -74,9 +74,9 @@ Cada réplica tem o seu número de instância (de 0 a 9) e permite operações d
 
 Possui também um timestamp vetorial, de modo a saber quantas operações já efetuou. Isto permite às outras réplicas saber se precisa de receber as operações de outra réplica ou de enviar.
 
-Como este protocolo pretende-se que as réplicas troquem mensagens entre si ao fim de `x` tempo (_gossip_), propagando assim as operações de atualização (sendo este tempo por defeito 30 segundos).
+Com este protocolo pretende-se que as réplicas troquem mensagens entre si ao fim de `x` tempo (_gossip_), propagando assim as operações de atualização (sendo este tempo por defeito 30 segundos).
 
-Para verificar que operações têm de ser enviadas de cada vez, compara-se os timestamps, bastando ver que se possui algum versão de uma réplica inferior, é necessário enviar as operações vinda da réplica correspondente.
+Para verificar que operações têm de ser enviadas de cada vez, compara-se os timestamps, bastando ver que se possui alguma versão de uma réplica inferior, é necessário enviar as operações vinda da réplica correspondente.
 
 No contexto do timestamp, só é colocada informação sobre operação de atualização (como o `report`, `cam_join`). Cada operação é constituída por um identificador e a instância de onde foi criada.
 
@@ -92,7 +92,7 @@ No lado contrário, o gestor da réplica que recebeu o timestamp inicialmente po
 
 ## Opções de implementação
 
-Pelo facto da não existência de coerência forte, é preciso resolver anomalias de leituras incoerentes pelo mesmo cliente, ou seja, quando um cliente está a fazer leituras a uma réplica, entretanto essa réplica falha e o cliente conecta-se a uma nova réplica, este cliente poderá vir a receber operações que não são coerentes com as leituras anteriores, podendo as atuais estarem desatualizadas. Por isso, decidimos implementar uma cache, que é atualizada a cada operação feita pelo cliente, recebendo o timestamp associado a essa operação e guardando as operações conhecidas por este cliente.
+Pelo facto da não existência de coerência forte, é preciso resolver anomalias de leituras incoerentes pelo mesmo cliente, ou seja, quando um cliente está a fazer leituras a uma réplica, entretanto essa réplica falha e o cliente conecta-se a uma nova réplica, este cliente poderá vir a receber operações que não são coerentes com as leituras anteriores, podendo as recebidas estarem desatualizadas. Por isso, decidimos implementar uma cache, que é atualizada a cada operação feita pelo cliente, recebendo o timestamp associado a essa operação e guardando as operações conhecidas por este cliente.
 
 Esta cache guarda no máximo até 10 operações, quer sejam de observações ou de informações de câmara. Quando a cache está cheia, cada operação nova é colocada no lugar da mais antiga.
 
