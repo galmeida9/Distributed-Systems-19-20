@@ -26,6 +26,7 @@ class HistoryCache {
 
     List<Command> cache = new LinkedList<>();
     int maxSize = 10;
+    int size = 0;
     int currIndex = 0;
 
     /**
@@ -40,7 +41,11 @@ class HistoryCache {
             cachedCommand.observationList = objectList;
             return;
         }
-        cache.add(currIndex, new Command(fullCommand, objectList, currTimestamp));
+        if (size == maxSize) cache.set(currIndex, new Command(fullCommand, objectList, currTimestamp));
+        else {
+            cache.add(currIndex, new Command(fullCommand, objectList, currTimestamp));
+            size++;
+        }
         currIndex = (currIndex +1) % maxSize;
     }
 
@@ -51,7 +56,16 @@ class HistoryCache {
      * @param currTimestamp
      */
     private void addCommand(String camName, String coordinates, Map<Integer, Integer> currTimestamp) {
-        cache.add(currIndex, new Command(camName, coordinates, currTimestamp));
+        Command cachedCommand = getCommand(camName);
+        if (cachedCommand != null) {
+            cachedCommand.camCoordinates = coordinates;
+            return;
+        }
+        if (size == maxSize) cache.set(currIndex, new Command(camName, coordinates, currTimestamp));
+        else {
+            cache.add(currIndex, new Command(camName, coordinates, currTimestamp));
+            size++;
+        }
         currIndex = (currIndex +1) % maxSize;
     }
 
