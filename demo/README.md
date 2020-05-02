@@ -15,7 +15,7 @@ Para sair do servidor envia-se um `SIGINT`, ou seja, `CTRL+C`. Os dados guardado
 ### 1.2. Eye
 
 Para correr, é necessário primeiro iniciar o silo-server.
-De seguida, na pasta `eye` corre-se o comando `target/appassembler/bin/eye localhost 8080 Alameda 1 1 `.
+De seguida, na pasta `eye` corre-se o comando `target/appassembler/bin/eye localhost 8080 Alameda 1 2 1 `.
 
 #### 1.2.1 Utilização
 
@@ -36,7 +36,7 @@ Ao enviar uma linha vazia, o cliente envia as observações para o servidor e re
 
 ### 1.3. Spotter
 
-Para correr, é necessário primeiro iniciar o silo-server. De seguida, na pasta spotter corre-se o comando `target/appassembler/bin/spotter localhost 8080`.
+Para correr, é necessário primeiro iniciar o silo-server. De seguida, na pasta spotter corre-se o comando `target/appassembler/bin/spotter localhost 8080 1`.
 
 #### 1.3.1 Utilização
 
@@ -49,7 +49,7 @@ Para limpar o servidor executar o comando `ctrl_clear`.</br>
 Para inicializar parâmetros executar o `comando ctrl_init`.</br>
 Tanto o comando ctrl_clear como o ctrl_init recebem como resposta do servidor o `[Status]`, sendo `OK` se tudo correu bem e `NOK` se ocorreram erros.
 
-Para sair do cliente Spotter executar o comando0 `exit`.
+Para sair do cliente Spotter executar o comando `exit`.
 
 Para obter informaçao sobre os comandos executar o comando `help`.
 
