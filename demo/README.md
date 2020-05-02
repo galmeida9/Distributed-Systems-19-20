@@ -208,8 +208,8 @@ réplica aleatória, se for, tenta-se conectar à escolhida, se esta não existi
 
 #### 3.1.3. Fazer interrogações
 
-Para se fazerem interrogações ao servidor é o usado o *spotter* e requer os mesmos argumentos que o *eye*, tendo o exato
- mesmo comportamento que ele.
+Para se fazerem interrogações ao servidor é o usado o *spotter* inicializado como dito anteriormente 
+(`target/appassembler/bin/spotter localhost 8080 1`), estando na pasta `spotter`.
 
 ### 3.2. Funcionamento normal
 
@@ -365,7 +365,7 @@ Para simularmos isto basta fechar uma réplica a meio da execução e voltar a a
 
 Em princípio toleramos esta falta, dizemos isto, visto que não encontramos nenhuma maneira de a verificar, visto que 
 teríamos que trocar a ordem de como o código é executado, o que pelo nosso conhecimento não é possível, mesmo com um 
-debugger não é possível saltar código, é sempre executável, ou seja se quisessemos enviar uma mensagem de gossip com 
+debugger não é possível saltar código, é sempre executável, ou seja, se quisessemos enviar uma mensagem de gossip com 
 uma câmara e uma observação reportada por essa mesma câmara, o nosso código permite, que a observação seja adicionada 
 primeiro, mas a mensagem é sempre enviada com a câmara em primeiro lugar, por motivos óbvios, visto que como é a câmara 
 que reporta, ela deve ser adicionada primeiro, mas como já referimos não temos maneira eficaz de trocar a ordem da 
