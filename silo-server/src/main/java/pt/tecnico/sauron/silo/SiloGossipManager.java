@@ -154,23 +154,27 @@ public class SiloGossipManager {
                 int splitPathSize = zkRecord.getPath().split("/").length;
                 String receivingReplicaInstance = zkRecord.getPath().split("/")[splitPathSize - 1];
                 //Send request
-                try {
-                    System.out.println("\nContacting replica " + receivingReplicaInstance + " at " + target + "...");
-                    System.out.println("Sending timestamp " + timestamp.toString() + "...");
-                    GossipTSResponse response = stub
-                            .withDeadlineAfter(gossipInterval/2, TimeUnit.MILLISECONDS)
-                            .gossipTS(request.build());
-                    System.out.println("Received timestamp " + response.getTimestampMap() + " from replica " + response.getInstance());
-                    receiveGossip(response.getTimestampMap(), response.getInstance());
-                    numbOfRetries = 0;
-                } catch (InvalidTypeException e) {
-                    System.out.println("Caught exception '" + e.getMessage() +
-                            "' when trying to contact " + zkRecord.toString() + " at " + target);
-                } catch (StatusRuntimeException e) {
-                    checkGossipException(e.getStatus(), receivingReplicaInstance);
-                } finally {
-                    channel.shutdown();
-                }
+                new Thread(() -> {
+                    try {
+                        System.out.println("\nContacting replica " + receivingReplicaInstance + " at " + target + "...");
+                        System.out.println("Sending timestamp " + timestamp.toString() + "...");
+                        GossipTSResponse response = stub
+                                .withDeadlineAfter(gossipInterval/2, TimeUnit.MILLISECONDS)
+                                .gossipTS(request.build());
+                        System.out.println("Received timestamp " + response.getTimestampMap() + " from replica " + response.getInstance());
+                        receiveGossip(response.getTimestampMap(), response.getInstance());
+                        numbOfRetries = 0;
+                    } catch (InvalidTypeException e) {
+                        System.out.println("Caught exception '" + e.getMessage() +
+                                "' when trying to contact " + zkRecord.toString() + " at " + target);
+                    } catch (StatusRuntimeException e) {
+                        checkGossipException(e.getStatus(), receivingReplicaInstance);
+                    } catch (RuntimeException e) {
+                        System.out.println("Caught exception!");
+                    } finally {
+                        channel.shutdown();
+                    }
+                }).start();
 
             }
         }
@@ -249,7 +253,7 @@ public class SiloGossipManager {
         else if (status.getCode() == Status.UNAVAILABLE.getCode())
             error = "Replica not available";
         else error = status.getCode().toString();
-        System.out.println(error + " sending request at replica " + instance);
+        System.out.println(error + " when trying to send request at replica " + instance);
     }
 
     /**

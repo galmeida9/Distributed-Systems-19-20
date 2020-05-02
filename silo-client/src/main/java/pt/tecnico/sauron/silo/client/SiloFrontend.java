@@ -35,7 +35,14 @@ public class SiloFrontend {
         connectToServer(instance);
     }
 
-    private SiloFrontend connectToServer(int instance) throws FailedConnectionException {
+    
+    /** 
+     * Connects client to a server
+     * @param instance
+     * @return int
+     * @throws FailedConnectionException
+     */
+    private int connectToServer(int instance) throws FailedConnectionException {
         String path = "/grpc/sauron/silo";
         if (instance >= 0) {
             path = path + '/' + Integer.toString(instance);
@@ -52,6 +59,13 @@ public class SiloFrontend {
                     throw new FailedConnectionException("No server is on");
                 }
                 int num = (int) (Math.random()*servers.size());
+                boolean samePath = record.getPath().equals(((ZKRecord) servers.toArray()[num]).getPath());
+                if (samePath && servers.size() == 1) {
+                    throw new FailedConnectionException("There aren't more available servers.");
+                }
+                else if (samePath) {
+                    connectToServer(-1);
+                }
                 record = (ZKRecord) servers.toArray()[num];
             }
             catch (ZKNamingException e) {
@@ -65,7 +79,7 @@ public class SiloFrontend {
         
         channel = ManagedChannelBuilder.forTarget(target).usePlaintext().build();
         stub = SiloGrpc.newBlockingStub(channel);
-        return this;
+        return Integer.parseInt(record.getPath().split("/")[record.getPath().split("/").length - 1]);
     }
 
     /*
@@ -124,9 +138,9 @@ public class SiloFrontend {
         } catch (StatusRuntimeException e) {
             if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()) {
                 try {
-                    increaseRetries(SiloFrontend.class.getMethod("camJoin", String.class, Double.class, Double.class), this, camName, lat, lon);
+                    increaseRetries(SiloFrontend.class.getMethod("camJoin", String.class, Double.class, Double.class), camName, lat, lon);
                 } catch (NoSuchMethodException ex) {
-                    // impossible
+                    throw new FailedConnectionException("Could not retry request.");
                 }
             }
             throw new InvalidCameraArgumentsException(e.getMessage());
@@ -156,9 +170,9 @@ public class SiloFrontend {
         catch (StatusRuntimeException e) {
             if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()) {
                 try {
-                    increaseRetries(SiloFrontend.class.getMethod("camInfo", String.class), this, camName);
+                    increaseRetries(SiloFrontend.class.getMethod("camInfo", String.class), camName);
                 } catch (NoSuchMethodException ex) {
-                    // impossible
+                    throw new FailedConnectionException("Could not retry request.");
                 }
             }
             throw new CameraNotFoundException(e.getMessage());
@@ -188,14 +202,16 @@ public class SiloFrontend {
             stub.withDeadlineAfter(retryTime, TimeUnit.MILLISECONDS).report(request.build());
             retries = 0;
         } catch (StatusRuntimeException e){
-            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()) {
+            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()
+                || e.getStatus().getCode() == Status.UNAVAILABLE.getCode()) {
                 try {
-                    increaseRetries(SiloFrontend.class.getMethod("report", List.class), this, observations);
+                    increaseRetries(SiloFrontend.class.getMethod("report", List.class), observations);
                 } catch (NoSuchMethodException ex) {
-                    // impossible
+                    throw new FailedConnectionException("Could not retry request.");
                 }
             }
-            throw new ReportException(e.getMessage());
+            else
+                throw new ReportException(e.getMessage());
         }
     }
 
@@ -217,15 +233,18 @@ public class SiloFrontend {
             retries = 0;                                            
             return convertObservation(response.getObservation());
         } catch (StatusRuntimeException e) {
-            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()) {
+            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()
+                || e.getStatus().getCode() == Status.UNAVAILABLE.getCode()) {
                 try {
-                    increaseRetries(SiloFrontend.class.getMethod("track", String.class, String.class), this, type, id);
+                    return (ObservationObject) increaseRetries(SiloFrontend.class.getMethod("track", String.class, String.class), type, id);
                 } catch (NoSuchMethodException ex) {
-                    // impossible
+                    throw new FailedConnectionException("Could not retry request.");
                 }
             }
-            throw new NoObservationsFoundException(e.getMessage());
+            else
+                throw new NoObservationsFoundException(e.getMessage());
         }
+
     }
     
     
@@ -250,15 +269,18 @@ public class SiloFrontend {
         
             return convertObservationList(response.getObservationList());
         } catch (StatusRuntimeException e) {
-            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()) {
+            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()
+                || e.getStatus().getCode() == Status.UNAVAILABLE.getCode()) {
                 try {
-                    increaseRetries(SiloFrontend.class.getMethod("trackMatch", String.class, String.class), this, type, partId);
+                    return (List) increaseRetries(SiloFrontend.class.getMethod("trackMatch", String.class, String.class), type, partId);
                 } catch (NoSuchMethodException ex) {
-                    // impossible
+                    throw new FailedConnectionException("Could not retry request.");
                 }
             }
-            throw new NoObservationsFoundException(e.getMessage());
+            else
+                throw new NoObservationsFoundException(e.getMessage());
         }
+
     }
 
     
@@ -284,14 +306,16 @@ public class SiloFrontend {
 
             return convertObservationList(response.getObservationList());
         } catch (StatusRuntimeException e) {
-            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()) {
+            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()
+                || e.getStatus().getCode() == Status.UNAVAILABLE.getCode()) {
                 try {
-                    increaseRetries(SiloFrontend.class.getMethod("trace", String.class, String.class), this, type, id);
+                    return (List) increaseRetries(SiloFrontend.class.getMethod("trace", String.class, String.class), type, id);
                 } catch (NoSuchMethodException ex) {
-                    // impossible
+                    throw new FailedConnectionException("Could not retry request.");
                 }
             }
-            throw new NoObservationsFoundException(e.getMessage());
+            else
+                throw new NoObservationsFoundException(e.getMessage());
         }
     }
 
@@ -312,14 +336,16 @@ public class SiloFrontend {
             retries = 0;
             return response.getOutput();
         } catch (StatusRuntimeException e) {
-            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()) {
+            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()
+                || e.getStatus().getCode() == Status.UNAVAILABLE.getCode()) {
                 try {
-                    increaseRetries(SiloFrontend.class.getMethod("ctrlPing", String.class), this, input);
+                    return (String) increaseRetries(SiloFrontend.class.getMethod("ctrlPing", String.class), input);
                 } catch (NoSuchMethodException ex) {
-                    // impossible
+                    throw new FailedConnectionException("Could not retry request.");
                 }
             }
-            throw new FailedConnectionException("Failed to connect to server.");
+            else
+                throw new FailedConnectionException("Failed to connect to server.");
         }
     }
 
@@ -429,7 +455,15 @@ public class SiloFrontend {
         }
     }
 
-    private void increaseRetries(Method func, SiloFrontend frontend , Object... args) throws FailedConnectionException {
+    
+    /** 
+     * Increases the number of retries of a request and tries to perform the same action again, if it already tried more than 2 times, the client tries to connect to another server.
+     * @param func
+     * @param args
+     * @return Object
+     * @throws FailedConnectionException
+     */
+    private Object increaseRetries(Method func, Object... args) throws FailedConnectionException {
         retries++;
         System.out.println("Retrying request.");
         try {
@@ -437,13 +471,13 @@ public class SiloFrontend {
                 System.out.println("Failed to retry request, changing server and trying again.");
                 retries = 0;
                 channel.shutdown();
-                func.invoke(connectToServer(-1), args);
+                System.out.println("Connected to replica " + connectToServer(-1));
+                return func.invoke(this, args);
             }
             else 
-                func.invoke(frontend, args);
+                return func.invoke(this, args);
         } catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-            System.out.println("djkfhsdkjfhs");
-            throw new FailedConnectionException("Failed to retry request1111.");
+            throw new FailedConnectionException("Failed to retry request.");
         }
     }
 }
