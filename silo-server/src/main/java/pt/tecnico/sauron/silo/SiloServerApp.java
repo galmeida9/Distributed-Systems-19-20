@@ -31,9 +31,9 @@ public class SiloServerApp {
 
 		final String zooHost = args[0];
 		final String zooPort = args[1];
-		final String host = args[2];
-		final String port = args[3];
-		final int instance = Integer.parseInt(args[4]);
+		final String host = args[3];
+		final String port = args[4];
+		final int instance = Integer.parseInt(args[2]);
 		final int retry;
 		if (args.length > 5)
 			retry = Integer.parseInt(args[5]);
