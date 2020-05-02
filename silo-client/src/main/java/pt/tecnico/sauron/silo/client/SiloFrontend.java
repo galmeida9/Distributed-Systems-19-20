@@ -143,14 +143,16 @@ public class SiloFrontend {
         catch (NullPointerException e) {
             throw new InvalidCameraArgumentsException(e.getMessage());
         } catch (StatusRuntimeException e) {
-            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()) {
+            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()
+                    || e.getStatus().getCode() == Status.UNAVAILABLE.getCode()) {
                 try {
                     increaseRetries(SiloFrontend.class.getMethod("camJoin", String.class, Double.class, Double.class), camName, lat, lon);
                 } catch (NoSuchMethodException ex) {
                     throw new FailedConnectionException("Could not retry request.");
                 }
             }
-            throw new InvalidCameraArgumentsException(e.getMessage());
+            else
+                throw new InvalidCameraArgumentsException(e.getMessage());
         }
     }
 
@@ -179,16 +181,19 @@ public class SiloFrontend {
             throw new CameraNotFoundException(e.getMessage());
         }
         catch (StatusRuntimeException e) {
-            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()) {
+            if (e.getStatus().getCode() == Status.DEADLINE_EXCEEDED.getCode()
+                    || e.getStatus().getCode() == Status.UNAVAILABLE.getCode()) {
                 try {
-                    increaseRetries(SiloFrontend.class.getMethod("camInfo", String.class), camName);
+                    return (String) increaseRetries(SiloFrontend.class.getMethod("camInfo", String.class), camName);
                 } catch (NoSuchMethodException ex) {
                     throw new FailedConnectionException("Could not retry request.");
                 }
             }
-            String coords = historyCache.getCamCoords(camName);
-            if (!coords.equals("")) return coords;
-            throw new CameraNotFoundException(e.getMessage());
+            else {
+                String coords = historyCache.getCamCoords(camName);
+                if (!coords.equals("")) return coords;
+                throw new CameraNotFoundException(e.getMessage());
+            }
         }
 
     }
