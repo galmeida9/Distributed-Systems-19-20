@@ -24,6 +24,7 @@ Sistemas Distribuídos 2019-2020, segundo semestre
 - [Métodos enviam exceções em caso de erro](https://github.com/tecnico-distsys/A09-Sauron/commit/b656a724d092cfff34f1389078657b251da2bef7)
 - [Erros no servidor são enviados em exceções para o cliente](https://github.com/tecnico-distsys/A09-Sauron/commit/b656a724d092cfff34f1389078657b251da2bef7)
 - [Utilização correta de estruturas concorrentes](https://github.com/tecnico-distsys/A09-Sauron/commit/55b2f3139079c287b379dad2216786e16ecf4bb4)
+- [Guia de demosntração mais completo](https://github.com/tecnico-distsys/A09-Sauron/commit/d3f96f2e78a33454f9158320e7f9fe88641abafc)
 - [Comentários relevantes](TODO:)
 
 ## Modelo de faltas
@@ -46,9 +47,11 @@ Faltas não toleradas
 
 Quando um cliente conecta-se a um servidor, esse servidor poderá falhar silenciosamente. Então, ao enviar uma operação, o servidor não irá responder, por isso, como implementámos `deadlines` nas operações, passado um tempo a função irá expirar e o cliente tentará de novo, até 3 vezes, a partir daí tenta conectar-se a outro servidor.
 
+A partir do momento em que o cliente troca de réplica, passa-se a utilizar a cache de forma a manter a coerência entre comandos já vistos anteriormente. Esta cache é explicada mais profundamente nas Opções de Implementação.
+
 As réplicas tentam trocar entre si mensagens, mas uma réplica pode falhar silenciosamente, não respondendo a nenhuma mensagem, pelo que irá dar um tempo máximo até à próxima tentativa de envio e passará à frente.
 
-Caso um gestor de réplica tente conectar-se a outro gestor de réplica e este último tenha um endereço inválido, o primeiro irá ignorar e seguir para o seguinte, não bloqueando e tentando de novo na próxima propagação de mensagens.
+Caso um gestor de réplica tente conectar-se a outro gestor de réplica (utilizando o registry) e este último tenha um endereço inválido, o primeiro irá ignorar e seguir para o seguinte, não bloqueando e tentando de novo na próxima propagação de mensagens.
 
 Caso um endereço de réplica seja alterado, o gestor de réplica irá conseguir conectar-se à tal réplica, pois não guarda registo dos endereços, acedendo ao `registry` que irá devolver o novo endereço correto.
 
