@@ -20,9 +20,9 @@ public class SiloServerApp {
 		}
 
 		// check arguments
-		if (args.length < 1) {
+		if (args.length < 5 || args.length > 6) {
 			System.err.println("Argument(s) missing!");
-			System.err.printf("Usage: java %s port%n", SiloServerApp.class.getName());
+			System.err.printf("Usage: $%s zooHost zooPort serverHost serverPort instanceNumber%n", SiloServerApp.class.getName());
 			return;
 		}
 
@@ -31,12 +31,20 @@ public class SiloServerApp {
 		final String host = args[2];
 		final String port = args[3];
 		final int instance = Integer.parseInt(args[4]);
-		final String path = "/grpc/sauron/silo/" + Integer.toString(instance);
-		final BindableService impl = new SiloServerImpl();
+		final int retry;
+		if (args.length > 5)
+			retry = Integer.parseInt(args[5]);
+		else 
+			retry = 30000;
+		final String root = "/grpc/sauron/silo";
+		final String path = root + '/' + Integer.toString(instance);
+		final BindableService impl = new SiloServerImpl(instance, root, zooHost, zooPort, retry);
 		ZKNaming zkNaming = null;
 
 		try {
+			//TODO: Check if zooKeeper is not on
 			zkNaming = new ZKNaming(zooHost, zooPort);
+			//TODO: Check if is not replacing another server
 			zkNaming.rebind(path, host, port);
 
 			// Create a new server to listen on port
@@ -46,7 +54,7 @@ public class SiloServerApp {
 			server.start();
 
 			// Server threads are running in the background.
-			System.out.println("Server started");
+			System.out.println("Replica " + instance + " has started");
 
 			// Create new thread where we wait for user to end the server
 			new Thread(() -> {

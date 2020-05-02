@@ -7,8 +7,9 @@ import pt.tecnico.sauron.silo.domain.*;
 import pt.tecnico.sauron.silo.domain.ObservationEntity.ObservationEntityType;
 import pt.tecnico.sauron.silo.domain.exceptions.CameraNotFoundException;
 import pt.tecnico.sauron.silo.domain.exceptions.InvalidCameraArguments;
+import pt.tecnico.sauron.silo.domain.exceptions.InvalidIdException;
 
-class SiloBackend {
+class SiloBackend implements OperationStore {
     private ObservationRepository obsRepo;
     private CameraRepository camRepo;
 
@@ -17,25 +18,56 @@ class SiloBackend {
         camRepo = new CameraRepository();
     }
 
+    
+    /** 
+     * Displays given camera's coordinates
+     * @param id
+     * @return List<Double>
+     * @throws CameraNotFoundException
+     */
     public List<Double> camInfo(String id) throws CameraNotFoundException {
         return camRepo.getCameraInfo(id);
     }
 
-    public void camJoin(String id, double lat,  double lon) throws InvalidCameraArguments {
-        camRepo.addCamera(id, lat, lon);
+    
+    /** 
+     * Adds a camera to the server
+     * @param id
+     * @param lat
+     * @param lon
+     * @return Operation
+     * @throws InvalidCameraArguments
+     */
+    public Operation addCamera(String id, double lat, double lon) throws InvalidCameraArguments {
+        return camRepo.addCamera(id, lat, lon);
     }
 
-
-    public void report(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
-        camRepo.getCamera(camName);
+    
+    /** 
+     * Adds an observation to the server
+     * @param camName
+     * @param obs
+     * @return List<Operation>
+     * @throws CameraNotFoundException
+     * @throws InvalidIdException
+     */
+    public List<Operation> addObservation(String camName, List<ObservationEntity> obs) throws CameraNotFoundException, InvalidIdException {
+        List<Operation> operations = new ArrayList<>();
         for (ObservationEntity observation : obs){
             checkId(observation.getType(), observation.getId());
             observation.setDateTime(LocalDateTime.now());
-            obsRepo.addObservation(observation.getType(), observation.getId(), observation);
+            operations.add(obsRepo.addObservation(observation.getType(), observation.getId(), observation));
         }
+        return operations;
     }
 
-
+    
+    /** 
+     * Checks if a given id complies to the our specification
+     * @param type
+     * @param id
+     * @throws InvalidIdException
+     */
     private void checkId(ObservationEntityType type, String id) throws InvalidIdException {
         if (id == null || id.isEmpty() || id.isBlank()) {
             throw new InvalidIdException("Id cannot be null, empty or blank.");
@@ -60,6 +92,15 @@ class SiloBackend {
     }
 
 
+    
+    /** 
+     * Shows most recent observation of a given entity
+     * @param type
+     * @param id
+     * @return ObservationEntity
+     * @throws InvalidIdException
+     * @throws NoObservationsException
+     */
     public ObservationEntity track(ObservationEntityType type, String id) throws InvalidIdException, NoObservationsException {
         checkId(type, id);
         List<ObservationEntity> obs = obsRepo.getObservations(type, id);
@@ -71,6 +112,15 @@ class SiloBackend {
         throw new NoObservationsException("No observations found for " + id);
     }
 
+    
+    /** 
+     * Shows the most recent observation for all the entities matching the given id and type
+     * @param type
+     * @param partId
+     * @return List<ObservationEntity>
+     * @throws InvalidIdException
+     * @throws NoObservationsException
+     */
     public List<ObservationEntity> trackMatch(ObservationEntityType type, String partId)
             throws InvalidIdException, NoObservationsException {
         List<ObservationEntity> matches = new ArrayList<>();
@@ -85,6 +135,14 @@ class SiloBackend {
         return matches;
     }
 
+    
+    /** 
+     * Gets all the observations for a given entity
+     * @param type
+     * @param id
+     * @return List<ObservationEntity>
+     * @throws InvalidIdException
+     */
     public List<ObservationEntity> trace(ObservationEntityType type, String id) throws InvalidIdException {
         checkId(type, id);
         List<ObservationEntity> obs = obsRepo.getObservations(type, id);
@@ -93,6 +151,11 @@ class SiloBackend {
         return obs;
     }
 
+    
+    /** 
+     * Clears all the data from the server
+     * @throws CannotClearServerException
+     */
     public void ctrlClear() throws CannotClearServerException {
         obsRepo.clear();
         camRepo.clear();
@@ -100,5 +163,4 @@ class SiloBackend {
             throw new CannotClearServerException("Could not clear the server.");
         }
     }
-    
 }

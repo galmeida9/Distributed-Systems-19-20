@@ -1,6 +1,8 @@
-package pt.tecnico.sauron.silo;
+package pt.tecnico.sauron.silo.domain.exceptions;
 
-// Exception for Invalid person id size
+/**
+ * Exception for when a operation is created with a identifier that doesn't match type
+ */
 public class InvalidIdException extends Exception {
     private static final long serialVersionUID = 1L;
 
